@@ -32,12 +32,12 @@ public class ExceptionHandlingMiddleware
     {
         var (statusCode, response) = exception switch
         {
-            NotFoundException nf => (HttpStatusCode.NotFound, ApiResponse<object>.Fail(nf.Message)),
-            Shared.Exceptions.ValidationException ve => (HttpStatusCode.BadRequest, ApiResponse<object>.Fail("Validation failed.", ve.Errors)),
-            ConflictException ce => (HttpStatusCode.Conflict, ApiResponse<object>.Fail(ce.Message)),
-            UnauthorizedException ue => (HttpStatusCode.Unauthorized, ApiResponse<object>.Fail(ue.Message)),
-            ForbiddenException fe => (HttpStatusCode.Forbidden, ApiResponse<object>.Fail(fe.Message)),
-            _ => (HttpStatusCode.InternalServerError, ApiResponse<object>.Fail("An unexpected error occurred."))
+            NotFoundException nf => (HttpStatusCode.NotFound, ApiResponse<object>.Fail(nf.Message, (int)HttpStatusCode.NotFound)),
+            Shared.Exceptions.ValidationException ve => (HttpStatusCode.BadRequest, ApiResponse<object>.Fail("Validation failed.", ve.Errors, (int)HttpStatusCode.BadRequest)),
+            ConflictException ce => (HttpStatusCode.Conflict, ApiResponse<object>.Fail(ce.Message, (int)HttpStatusCode.Conflict)),
+            UnauthorizedException ue => (HttpStatusCode.Unauthorized, ApiResponse<object>.Fail(ue.Message, (int)HttpStatusCode.Unauthorized)),
+            ForbiddenException fe => (HttpStatusCode.Forbidden, ApiResponse<object>.Fail(fe.Message, (int)HttpStatusCode.Forbidden)),
+            _ => (HttpStatusCode.InternalServerError, ApiResponse<object>.Fail("An unexpected error occurred.", (int)HttpStatusCode.InternalServerError))
         };
 
         if (statusCode == HttpStatusCode.InternalServerError)

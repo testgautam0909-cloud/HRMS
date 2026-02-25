@@ -1,0 +1,167 @@
+@baseUrl = http://localhost:5153/api/v1
+@adminEmail = admin@hrms.com
+@adminPassword = Admin@123
+@validDepartmentId = e4990a67-5691-4e51-9bfe-f48835f6113c
+@validDesignationId = e5298978-e184-487b-8ab5-5d1fc19d5d8c
+
+### 1. LOGIN
+# @name loginAdmin
+POST {{baseUrl}}/Auth/login
+Content-Type: application/json
+
+{
+    "email": "{{adminEmail}}",
+    "password": "{{adminPassword}}"
+}
+
+### Export Token
+@token = {{loginAdmin.response.body.data.accessToken}}
+@adminId = {{loginAdmin.response.body.data.userId}}
+@adminEmployeeId = {{loginAdmin.response.body.data.employeeId}}
+
+### 2. GET CURRENT USER
+GET {{baseUrl}}/Employee/me
+Authorization: Bearer {{token}}
+
+
+### =========================================
+### EMPLOYEE MANAGEMENT
+### =========================================
+
+### 3. GET DEPARTMENTS (No Token)
+# @name getDepartments
+GET {{baseUrl}}/Employee/departments
+
+### 4. GET DESIGNATIONS (No Token)
+# @name getDesignations
+GET {{baseUrl}}/Employee/designations
+
+### 5. CREATE EMPLOYEE PROFILE ONLY (No Login Created, pure HR record)
+# @name createEmployee
+POST {{baseUrl}}/Employee
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "firstName": "Rahul",
+  "lastName": "Sharma",
+  "email": "rahul.sharma@techvision.in",
+  "phone": "9876543210",
+  "dateOfBirth": "2000-02-25T00:00:00Z",
+  "gender": 1,
+  "address": "Mumbai, India",
+  "emergencyContact": "Father - 9998887776",
+  "departmentId": "{{validDepartmentId}}",
+  "designationId": "{{validDesignationId}}",
+  "employmentType": 1,
+  "joiningDate": "2026-02-25T00:00:00Z"
+}
+
+@newEmployeeId = {{createEmployee.response.body.data.id}}
+
+### 6. GET ALL EMPLOYEES
+GET {{baseUrl}}/Employee?page=1&pageSize=10
+Authorization: Bearer {{token}}
+
+
+### =========================================
+### ATTENDANCE
+### =========================================
+
+### 7. CHECK IN
+POST {{baseUrl}}/Attendance/check-in
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "date": "2026-02-26T00:00:00Z",
+  "ipAddress": "192.168.1.100"
+}
+
+### 8. CHECK OUT
+POST {{baseUrl}}/Attendance/check-out
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "date": "2026-02-26T00:00:00Z",
+  "ipAddress": "192.168.1.100"
+}
+
+### 9. ATTENDANCE SUMMARY
+GET {{baseUrl}}/Attendance/summary?month=2&year=2026
+Authorization: Bearer {{token}}
+
+
+### =========================================
+### LEAVE MANAGEMENT
+### =========================================
+
+### 10. GET LEAVE BALANCES
+GET {{baseUrl}}/Leave/balance
+Authorization: Bearer {{token}}
+
+### 11. APPLY FOR LEAVE
+# @name applyLeave
+POST {{baseUrl}}/Leave/apply
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "type": 1,
+  "startDate": "2026-03-01T00:00:00Z",
+  "endDate": "2026-03-02T00:00:00Z",
+  "reason": "Family function"
+}
+
+@leaveId = {{applyLeave.response.body.data.id}}
+
+### 12. GET PENDING LEAVES (Admin)
+GET {{baseUrl}}/Leave/pending
+Authorization: Bearer {{token}}
+
+### 13. APPROVE LEAVE
+PUT {{baseUrl}}/Leave/{{leaveId}}/approve
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "remarks": "Enjoy the function!"
+}
+
+
+### =========================================
+### PAYROLL
+### =========================================
+
+### 14. GENERATE PAYROLL FOR MONTH (Admin only)
+POST {{baseUrl}}/Payroll/generate
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "month": 2,
+  "year": 2026
+}
+
+### 15. GET PAYROLL RUNS
+GET {{baseUrl}}/Payroll/runs
+Authorization: Bearer {{token}}
+
+
+### =========================================
+### DOCUMENTS
+### =========================================
+
+### 16. LIST MY DOCUMENTS
+GET {{baseUrl}}/Document/my-documents
+Authorization: Bearer {{token}}
+
+
+### =========================================
+### AUDIT LOGS
+### =========================================
+
+### 17. VIEW SYSTEM AUDIT LOGS (Admin only)
+GET {{baseUrl}}/Audit?page=1&pageSize=20
+Authorization: Bearer {{token}}

@@ -75,6 +75,7 @@ public class EmployeeController : ControllerBase
     }
 
     [HttpGet("departments")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetDepartments()
     {
         return Ok(ApiResponse<IEnumerable<DepartmentDto>>.Ok(await _service.GetDepartmentsAsync()));
@@ -89,6 +90,7 @@ public class EmployeeController : ControllerBase
     }
 
     [HttpGet("designations")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetDesignations()
     {
         return Ok(ApiResponse<IEnumerable<DesignationDto>>.Ok(await _service.GetDesignationsAsync()));
@@ -100,5 +102,27 @@ public class EmployeeController : ControllerBase
     {
         var by = User.FindFirst(ClaimTypes.Email)?.Value ?? "system";
         return Ok(ApiResponse<DesignationDto>.Ok(await _service.CreateDesignationAsync(dto, by)));
+    }
+
+    [HttpGet("employment-types")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult GetEmploymentTypes()
+    {
+        var types = Enum.GetValues(typeof(HRMS.Domain.Enums.EmploymentType))
+            .Cast<HRMS.Domain.Enums.EmploymentType>()
+            .Select(e => new { Id = (int)e, Name = e.ToString() });
+        return Ok(ApiResponse<object>.Ok(types));
+    }
+
+    [HttpGet("genders")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult GetGenders()
+    {
+        var genders = Enum.GetValues(typeof(HRMS.Domain.Enums.Gender))
+            .Cast<HRMS.Domain.Enums.Gender>()
+            .Select(e => new { Id = (int)e, Name = e.ToString() });
+        return Ok(ApiResponse<object>.Ok(genders));
     }
 }

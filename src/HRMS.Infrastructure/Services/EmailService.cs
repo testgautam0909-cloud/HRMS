@@ -1,43 +1,61 @@
-using HRMS.Application.Interfaces;
-using MailKit.Net.Smtp;
-using MailKit.Security;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using HRMS.Application.Interfaces;
 
 namespace HRMS.Infrastructure.Services;
 
 public class EmailService : IEmailService
 {
     private readonly IConfiguration _config;
+    private readonly ILogger<EmailService> _logger;
 
-    public EmailService(IConfiguration config)
+    public EmailService(IConfiguration config, ILogger<EmailService> logger)
     {
         _config = config;
+        _logger = logger;
     }
 
     public async Task SendEmailAsync(string to, string subject, string body, byte[]? attachment = null, string? attachmentName = null)
     {
-        var senderEmail = _config["Email:SenderEmail"] ?? _config["Email:From"] ?? "noreply@hrms.com";
-        var smtpHost = _config["Email:SmtpHost"] ?? "smtp.gmail.com";
-        var smtpPort = int.Parse(_config["Email:SmtpPort"] ?? "587");
-        var username = _config["Email:SenderEmail"] ?? _config["Email:Username"] ?? senderEmail;
-        var password = _config["Email:SenderPassword"] ?? _config["Email:Password"];
+        try
+        {
+            var senderEmail = _config["Email:SenderEmail"] ?? _config["Email:From"] ?? "noreply@hrms.com";
+            var smtpHost = _config["Email:SmtpHost"] ?? "smtp.gmail.com";
+            var smtpPort = int.Parse(_config["Email:SmtpPort"] ?? "587");
+            var username = _config["Email:SenderEmail"] ?? _config["Email:Username"] ?? senderEmail;
+            var password = (_config["Email:SenderPassword"] ?? _config["Email:Password"])?.Replace(" ", "");
 
-        var message = new MimeMessage();
-        message.From.Add(MailboxAddress.Parse(senderEmail));
-        message.To.Add(MailboxAddress.Parse(to));
-        message.Subject = subject;
+            if (string.IsNullOrEmpty(password))
+            {
+                _logger.LogWarning("Email sending skipped: SMTP Password is not configured.");
+                return;
+            }
 
-        var builder = new BodyBuilder { HtmlBody = body };
-        if (attachment != null && !string.IsNullOrEmpty(attachmentName))
-            builder.Attachments.Add(attachmentName, attachment);
-        message.Body = builder.ToMessageBody();
+            var message = new MimeMessage();
+            message.From.Add(MailboxAddress.Parse(senderEmail));
+            message.To.Add(MailboxAddress.Parse(to));
+            message.Subject = subject;
 
-        using var smtp = new SmtpClient();
-        await smtp.ConnectAsync(smtpHost, smtpPort, SecureSocketOptions.StartTls);
-        await smtp.AuthenticateAsync(username, password);
-        await smtp.SendAsync(message);
-        await smtp.DisconnectAsync(true);
+            var builder = new BodyBuilder { HtmlBody = body };
+            if (attachment != null && !string.IsNullOrEmpty(attachmentName))
+                builder.Attachments.Add(attachmentName, attachment);
+            message.Body = builder.ToMessageBody();
+
+            using var smtp = new SmtpClient();
+            await smtp.ConnectAsync(smtpHost, smtpPort, SecureSocketOptions.StartTls);
+            await smtp.AuthenticateAsync(username, password);
+            await smtp.SendAsync(message);
+            await smtp.DisconnectAsync(true);
+            
+            _logger.LogInformation("Successfully sent email to {To} with subject {Subject}", to, subject);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send email to {To}. Reason: {Message}", to, ex.Message);
+        }
     }
 
     public async Task SendWelcomeEmailAsync(string to, string name, string password)

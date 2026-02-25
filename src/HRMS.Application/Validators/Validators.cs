@@ -26,7 +26,11 @@ public class RegisterDtoValidator : AbstractValidator<RegisterDto>
             .LessThan(DateTime.UtcNow.AddYears(-18)).WithMessage("Employee must be at least 18 years old.");
         RuleFor(x => x.DepartmentId).NotEmpty();
         RuleFor(x => x.DesignationId).NotEmpty();
-        RuleFor(x => x.Role).NotEmpty().Must(r => r == "Admin" || r == "HR" || r == "Employee");
+        RuleFor(x => x.Role).NotEmpty().Must(r => 
+            r.Equals("Admin", StringComparison.OrdinalIgnoreCase) || 
+            r.Equals("HR", StringComparison.OrdinalIgnoreCase) || 
+            r.Equals("Employee", StringComparison.OrdinalIgnoreCase))
+            .WithMessage("Role must be one of: Admin, HR, Employee.");
     }
 }
 
@@ -36,6 +40,14 @@ public class LoginDtoValidator : AbstractValidator<LoginDto>
     {
         RuleFor(x => x.Email).NotEmpty().EmailAddress();
         RuleFor(x => x.Password).NotEmpty();
+    }
+}
+
+public class ForgotPasswordDtoValidator : AbstractValidator<ForgotPasswordDto>
+{
+    public ForgotPasswordDtoValidator()
+    {
+        RuleFor(x => x.Email).NotEmpty().EmailAddress();
     }
 }
 

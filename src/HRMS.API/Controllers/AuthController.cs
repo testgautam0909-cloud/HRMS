@@ -67,4 +67,14 @@ public class AuthController : ControllerBase
         await _authService.ResetPasswordAsync(dto, performedBy);
         return Ok(ApiResponse<object>.Ok(null!, "Password reset successfully."));
     }
+
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+    {
+        await _authService.ForgotPasswordAsync(dto);
+        return Ok(ApiResponse<object>.Ok(null!, "If an account exists for this email, a new password will be sent."));
+    }
 }

@@ -47,6 +47,12 @@ public class AuthService : IAuthService
         var seq = await _unitOfWork.Employees.GetNextSequenceForYearAsync(year);
         var code = StringHelper.GenerateEmployeeCode(year, seq);
 
+        var dept = await _unitOfWork.Departments.GetByIdAsync(dto.DepartmentId);
+        if (dept == null || dept.IsDeleted) throw new NotFoundException("Department", dto.DepartmentId);
+
+        var desig = await _unitOfWork.Designations.GetByIdAsync(dto.DesignationId);
+        if (desig == null || desig.IsDeleted) throw new NotFoundException("Designation", dto.DesignationId);
+
         var user = new ApplicationUser
         {
             UserName = dto.Email, Email = dto.Email,
@@ -169,6 +175,22 @@ public class AuthService : IAuthService
 
         await _auditService.LogAsync("User", dto.UserId, AuditAction.PasswordReset, performedBy);
         _ = _emailService.SendPasswordResetEmailAsync(user.Email!, user.UserName!, dto.NewPassword);
+    }
+
+    public async Task ForgotPasswordAsync(ForgotPasswordDto dto)
+    {
+        var user = await _userManager.FindByEmailAsync(dto.Email);
+        if (user == null || !user.IsActive) return; // Silent return to prevent email enumeration
+
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        var newPwd = StringHelper.GenerateRandomPassword();
+        var result = await _userManager.ResetPasswordAsync(user, token, newPwd);
+        
+        if (result.Succeeded)
+        {
+            await _auditService.LogAsync("User", user.Id, AuditAction.PasswordReset, "System-ForgotPassword");
+            _ = _emailService.SendPasswordResetEmailAsync(user.Email!, user.UserName!, newPwd);
+        }
     }
 
     private async Task<TokenResponseDto> GenerateTokenResponseAsync(ApplicationUser user)

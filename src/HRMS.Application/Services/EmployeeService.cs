@@ -29,6 +29,12 @@ public class EmployeeService : IEmployeeService
         var existing = await _unitOfWork.Employees.GetByEmailAsync(dto.Email);
         if (existing != null) throw new ConflictException("An employee with this email already exists.");
 
+        var dept = await _unitOfWork.Departments.GetByIdAsync(dto.DepartmentId);
+        if (dept == null || dept.IsDeleted) throw new NotFoundException("Department", dto.DepartmentId);
+
+        var desig = await _unitOfWork.Designations.GetByIdAsync(dto.DesignationId);
+        if (desig == null || desig.IsDeleted) throw new NotFoundException("Designation", dto.DesignationId);
+
         var year = dto.JoiningDate.Year;
         var sequence = await _unitOfWork.Employees.GetNextSequenceForYearAsync(year);
 
