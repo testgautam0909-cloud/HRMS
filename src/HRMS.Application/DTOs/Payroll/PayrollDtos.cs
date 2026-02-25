@@ -4,6 +4,7 @@ public class PayrollGenerateDto
 {
     public int Month { get; set; }
     public int Year { get; set; }
+    public List<Guid>? EmployeeIds { get; set; }
 }
 
 public class PayrollResponseDto
@@ -47,10 +48,13 @@ public class PayrollSummaryDto
     public decimal TotalGrossSalary { get; set; }
     public decimal TotalDeductions { get; set; }
     public decimal TotalNetSalary { get; set; }
-    public string Status { get; set; } = string.Empty;
+    public int TotalPaid { get; set; }
+    public int TotalPending { get; set; }
 }
 
 public class PayrollOverrideDto
 {
-    public string Reason { get; set; } = string.Empty;
+    public decimal? BonusAmount { get; set; }
+    public decimal? PenaltyAmount { get; set; }
+    public string? OverrideReason { get; set; }
 }

@@ -17,8 +17,14 @@ public class EmailService : IEmailService
 
     public async Task SendEmailAsync(string to, string subject, string body, byte[]? attachment = null, string? attachmentName = null)
     {
+        var senderEmail = _config["Email:SenderEmail"] ?? _config["Email:From"] ?? "noreply@hrms.com";
+        var smtpHost = _config["Email:SmtpHost"] ?? "smtp.gmail.com";
+        var smtpPort = int.Parse(_config["Email:SmtpPort"] ?? "587");
+        var username = _config["Email:SenderEmail"] ?? _config["Email:Username"] ?? senderEmail;
+        var password = _config["Email:SenderPassword"] ?? _config["Email:Password"];
+
         var message = new MimeMessage();
-        message.From.Add(MailboxAddress.Parse(_config["Email:From"]));
+        message.From.Add(MailboxAddress.Parse(senderEmail));
         message.To.Add(MailboxAddress.Parse(to));
         message.Subject = subject;
 
@@ -28,8 +34,8 @@ public class EmailService : IEmailService
         message.Body = builder.ToMessageBody();
 
         using var smtp = new SmtpClient();
-        await smtp.ConnectAsync(_config["Email:SmtpHost"], int.Parse(_config["Email:SmtpPort"] ?? "587"), SecureSocketOptions.StartTls);
-        await smtp.AuthenticateAsync(_config["Email:Username"], _config["Email:Password"]);
+        await smtp.ConnectAsync(smtpHost, smtpPort, SecureSocketOptions.StartTls);
+        await smtp.AuthenticateAsync(username, password);
         await smtp.SendAsync(message);
         await smtp.DisconnectAsync(true);
     }

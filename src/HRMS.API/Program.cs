@@ -1,4 +1,5 @@
 using System.Text;
+using DotNetEnv;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using HRMS.API.Middleware;
@@ -18,13 +19,29 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 
+Env.Load(Path.Combine(Directory.GetCurrentDirectory(), "..", ".."));
+Env.Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, config) =>
     config.ReadFrom.Configuration(context.Configuration));
 
+var dbUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+string? connStr;
+if (!string.IsNullOrEmpty(dbUrl))
+{
+    var uri = new Uri(dbUrl);
+    var userInfo = uri.UserInfo.Split(':');
+    connStr = $"Host={uri.Host};Port={(uri.Port > 0 ? uri.Port : 5432)};Database={uri.AbsolutePath.TrimStart('/')};Username={userInfo[0]};Password={userInfo[1]};SSL Mode=Require;Trust Server Certificate=true";
+}
+else
+{
+    connStr = builder.Configuration.GetConnectionString("DefaultConnection");
+}
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connStr));
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
@@ -79,9 +96,13 @@ builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 builder.Services.AddScoped<ILeaveService, LeaveService>();
 builder.Services.AddScoped<ISalaryService, SalaryService>();
+builder.Services.AddScoped<IPayrollService, PayrollService>();
+builder.Services.AddScoped<IDocumentService, DocumentService>();
+builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<ISalarySlipService, SalarySlipService>();
 
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddValidatorsFromAssemblyContaining<LoginDtoValidator>();
@@ -131,6 +152,7 @@ app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<HRMS.API.Hubs.ChatHub>("/hubs/chat");
 
 using (var scope = app.Services.CreateScope())
 {
