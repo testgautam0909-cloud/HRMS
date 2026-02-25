@@ -1,0 +1,60 @@
+version: "3.8"
+
+services:
+  hrms-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT__Secret=${JWT__Secret}
+      - JWT__Issuer=${JWT__Issuer}
+      - JWT__Audience=${JWT__Audience}
+      - JWT__AccessTokenExpiryMinutes=${JWT__AccessTokenExpiryMinutes}
+      - JWT__RefreshTokenExpiryDays=${JWT__RefreshTokenExpiryDays}
+      - Cloudinary__CloudName=${Cloudinary__CloudName}
+      - Cloudinary__ApiKey=${Cloudinary__ApiKey}
+      - Cloudinary__ApiSecret=${Cloudinary__ApiSecret}
+      - Email__SmtpHost=${Email__SmtpHost}
+      - Email__SmtpPort=${Email__SmtpPort}
+      - Email__SenderEmail=${Email__SenderEmail}
+      - Email__SenderPassword=${Email__SenderPassword}
+    depends_on:
+      - postgres
+    networks:
+      - hrms-network
+
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-hrms_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-hrms_password}
+      - POSTGRES_DB=${POSTGRES_DB:-hrms_db}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - hrms-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    ports:
+      - "5050:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL:-admin@hrms.com}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-admin}
+    depends_on:
+      - postgres
+    networks:
+      - hrms-network
+
+volumes:
+  pgdata:
+
+networks:
+  hrms-network:
+    driver: bridge
