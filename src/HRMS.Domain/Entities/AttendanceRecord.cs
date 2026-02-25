@@ -12,8 +12,6 @@ public class AttendanceRecord : BaseEntity
     public decimal? WorkHours { get; set; }
     public AttendanceStatus Status { get; set; }
     public string? IpAddress { get; set; }
-    public double? Latitude { get; set; }
-    public double? Longitude { get; set; }
     public string? CorrectionNote { get; set; }
     public string? CorrectedBy { get; set; }
 }

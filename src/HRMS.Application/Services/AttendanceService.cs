@@ -39,8 +39,6 @@ public class AttendanceService : IAttendanceService
             CheckInTime = DateTime.UtcNow,
             Status = AttendanceStatus.Present,
             IpAddress = dto.IpAddress,
-            Latitude = dto.Latitude,
-            Longitude = dto.Longitude,
             CreatedBy = performedBy,
             UpdatedBy = performedBy
         };
