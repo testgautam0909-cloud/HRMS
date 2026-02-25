@@ -6,24 +6,11 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "5000:8080"
+      - "5153:8080"
+    env_file:
+      - .env
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - DATABASE_URL=${DATABASE_URL}
-      - JWT__Secret=${JWT__Secret}
-      - JWT__Issuer=${JWT__Issuer}
-      - JWT__Audience=${JWT__Audience}
-      - JWT__AccessTokenExpiryMinutes=${JWT__AccessTokenExpiryMinutes}
-      - JWT__RefreshTokenExpiryDays=${JWT__RefreshTokenExpiryDays}
-      - Cloudinary__CloudName=${Cloudinary__CloudName}
-      - Cloudinary__ApiKey=${Cloudinary__ApiKey}
-      - Cloudinary__ApiSecret=${Cloudinary__ApiSecret}
-      - Email__SmtpHost=${Email__SmtpHost}
-      - Email__SmtpPort=${Email__SmtpPort}
-      - Email__SenderEmail=${Email__SenderEmail}
-      - Email__SenderPassword=${Email__SenderPassword}
-    depends_on:
-      - postgres
     networks:
       - hrms-network
 
