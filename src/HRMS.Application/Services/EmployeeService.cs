@@ -132,28 +132,49 @@ public class EmployeeService : IEmployeeService
         experience.CreatedBy = performedBy;
         experience.UpdatedBy = performedBy;
 
+        await _unitOfWork.ExperienceHistories.AddAsync(experience);
         await _unitOfWork.SaveChangesAsync();
         return _mapper.Map<ExperienceHistoryDto>(experience);
     }
 
     public async Task<IEnumerable<DepartmentDto>> GetDepartmentsAsync()
     {
-        var departments = await _unitOfWork.Employees.FindAsync(_ => false);
-        return Enumerable.Empty<DepartmentDto>();
+        var departments = await _unitOfWork.Departments.FindAsync(d => !d.IsDeleted);
+        return _mapper.Map<IEnumerable<DepartmentDto>>(departments);
     }
 
     public async Task<DepartmentDto> CreateDepartmentAsync(DepartmentCreateDto dto, string performedBy)
     {
-        return new DepartmentDto { Name = dto.Name };
+        var department = new Department
+        {
+            Name = dto.Name,
+            Description = dto.Description,
+            IsActive = true,
+            CreatedBy = performedBy,
+            UpdatedBy = performedBy
+        };
+        await _unitOfWork.Departments.AddAsync(department);
+        await _unitOfWork.SaveChangesAsync();
+        return _mapper.Map<DepartmentDto>(department);
     }
 
     public async Task<IEnumerable<DesignationDto>> GetDesignationsAsync()
     {
-        return Enumerable.Empty<DesignationDto>();
+        var designations = await _unitOfWork.Designations.FindAsync(d => !d.IsDeleted);
+        return _mapper.Map<IEnumerable<DesignationDto>>(designations);
     }
 
     public async Task<DesignationDto> CreateDesignationAsync(DesignationCreateDto dto, string performedBy)
     {
-        return new DesignationDto { Title = dto.Title };
+        var designation = new Designation
+        {
+            Title = dto.Title,
+            IsActive = true,
+            CreatedBy = performedBy,
+            UpdatedBy = performedBy
+        };
+        await _unitOfWork.Designations.AddAsync(designation);
+        await _unitOfWork.SaveChangesAsync();
+        return _mapper.Map<DesignationDto>(designation);
     }
 }

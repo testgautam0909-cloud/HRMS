@@ -1,3 +1,4 @@
+using HRMS.Domain.Entities;
 using HRMS.Domain.Interfaces.Repositories;
 
 namespace HRMS.Domain.Interfaces;
@@ -17,6 +18,9 @@ public interface IUnitOfWork : IDisposable
     IChatRepository Chats { get; }
     IAuditLogRepository AuditLogs { get; }
     IRefreshTokenRepository RefreshTokens { get; }
+    IGenericRepository<Department> Departments { get; }
+    IGenericRepository<Designation> Designations { get; }
+    IGenericRepository<ExperienceHistory> ExperienceHistories { get; }
     Task<int> SaveChangesAsync();
     Task BeginTransactionAsync();
     Task CommitTransactionAsync();
