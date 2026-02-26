@@ -15,14 +15,12 @@ public class LeaveService : ILeaveService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
-    private readonly IAuditService _auditService;
     private readonly IEmailService _emailService;
 
-    public LeaveService(IUnitOfWork unitOfWork, IMapper mapper, IAuditService auditService, IEmailService emailService)
+    public LeaveService(IUnitOfWork unitOfWork, IMapper mapper, IEmailService emailService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
-        _auditService = auditService;
         _emailService = emailService;
     }
 
@@ -94,8 +92,6 @@ public class LeaveService : ILeaveService
                 }
             }
 
-            await _auditService.LogAsync("LeaveApplication", leaveId.ToString(), AuditAction.Approved, performedBy,
-                remarks: dto.Remarks);
         }
         else
         {
@@ -103,8 +99,6 @@ public class LeaveService : ILeaveService
             leave.RejectionReason = dto.Remarks;
             leave.Remarks = dto.Remarks;
 
-            await _auditService.LogAsync("LeaveApplication", leaveId.ToString(), AuditAction.Rejected, performedBy,
-                remarks: dto.Remarks);
         }
 
         leave.UpdatedBy = performedBy;
@@ -164,9 +158,6 @@ public class LeaveService : ILeaveService
 
         _unitOfWork.Leaves.Update(leave);
         await _unitOfWork.SaveChangesAsync();
-
-        await _auditService.LogAsync("LeaveApplication", leaveId.ToString(), AuditAction.Updated, performedBy,
-            remarks: "Leave cancelled, balance restored");
 
         return _mapper.Map<LeaveResponseDto>(leave);
     }
@@ -241,5 +232,10 @@ public class LeaveService : ILeaveService
         }
 
         await _unitOfWork.SaveChangesAsync();
+    }
+
+    public async Task<IEnumerable<LeaveBalance>> GetLeaveBalancesForEmployeeAsync(Guid employeeId, int year)
+    {
+        return await _unitOfWork.LeaveBalances.GetAllBalancesAsync(employeeId, year);
     }
 }

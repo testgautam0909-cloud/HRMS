@@ -6,7 +6,7 @@ using HRMS.Application.DTOs.Salary;
 using HRMS.Application.DTOs.Payroll;
 using HRMS.Application.DTOs.Document;
 using HRMS.Application.DTOs.Chat;
-using HRMS.Application.DTOs.Audit;
+using HRMS.Application.DTOs.Shift;
 using HRMS.Domain.Entities;
 
 namespace HRMS.Application.Mappings;
@@ -75,7 +75,12 @@ public class MappingProfile : Profile
             .ForMember(d => d.SenderName, o => o.MapFrom(s => $"{s.Sender.FirstName} {s.Sender.LastName}"))
             .ForMember(d => d.Type, o => o.MapFrom(s => s.Type.ToString()));
 
-        CreateMap<AuditLog, AuditLogResponseDto>()
-            .ForMember(d => d.Action, o => o.MapFrom(s => s.Action.ToString()));
+        // Shift mappings
+        CreateMap<CreateShiftDto, Shift>();
+        CreateMap<Shift, ShiftDto>();
+        CreateMap<ShiftAssignment, ShiftAssignmentDto>()
+            .ForMember(d => d.EmployeeName, o => o.MapFrom(s => $"{s.Employee.FirstName} {s.Employee.LastName}"))
+            .ForMember(d => d.ShiftName, o => o.MapFrom(s => s.Shift.Name));
+        CreateMap<CreateShiftAssignmentDto, ShiftAssignment>();
     }
 }

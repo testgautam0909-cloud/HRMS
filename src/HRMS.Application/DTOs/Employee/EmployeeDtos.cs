@@ -48,6 +48,7 @@ public class EmployeeResponseDto
     public bool IsActive { get; set; }
     public DateTime? DeactivatedAt { get; set; }
     public string? DeactivationReason { get; set; }
+    public string? CurrentShift { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }
@@ -61,6 +62,7 @@ public class EmployeeSummaryDto
     public string Department { get; set; } = string.Empty;
     public string Designation { get; set; } = string.Empty;
     public bool IsActive { get; set; }
+    public string? CurrentShift { get; set; }
 }
 
 public class EmployeeProfileDto : EmployeeResponseDto

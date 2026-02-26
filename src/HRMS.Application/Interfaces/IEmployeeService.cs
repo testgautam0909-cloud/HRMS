@@ -1,5 +1,6 @@
 using HRMS.Application.DTOs.Common;
 using HRMS.Application.DTOs.Employee;
+using HRMS.Application.DTOs.Shift;
 using HRMS.Shared.Wrappers;
 
 namespace HRMS.Application.Interfaces;
@@ -18,4 +19,5 @@ public interface IEmployeeService
     Task<DepartmentDto> CreateDepartmentAsync(DepartmentCreateDto dto, string performedBy);
     Task<IEnumerable<DesignationDto>> GetDesignationsAsync();
     Task<DesignationDto> CreateDesignationAsync(DesignationCreateDto dto, string performedBy);
+    Task<EmployeeShiftScheduleDto> GetEmployeeShiftScheduleAsync(Guid employeeId);
 }

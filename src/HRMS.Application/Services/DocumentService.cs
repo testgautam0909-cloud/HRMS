@@ -13,14 +13,12 @@ public class DocumentService : IDocumentService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly ICloudinaryService _cloudinary;
-    private readonly IAuditService _auditService;
 
-    public DocumentService(IUnitOfWork unitOfWork, IMapper mapper, ICloudinaryService cloudinary, IAuditService auditService)
+    public DocumentService(IUnitOfWork unitOfWork, IMapper mapper, ICloudinaryService cloudinary)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _cloudinary = cloudinary;
-        _auditService = auditService;
     }
 
     public async Task<DocumentResponseDto> UploadAsync(DocumentUploadDto dto, string performedBy)
@@ -51,9 +49,6 @@ public class DocumentService : IDocumentService
         await _unitOfWork.Documents.AddAsync(doc);
         await _unitOfWork.SaveChangesAsync();
 
-        await _auditService.LogAsync("EmployeeDocument", doc.Id.ToString(), AuditAction.Created, performedBy,
-            remarks: $"Uploaded {dto.File.FileName}");
-
         return _mapper.Map<DocumentResponseDto>(doc);
     }
 
@@ -79,8 +74,5 @@ public class DocumentService : IDocumentService
         doc.UpdatedBy = performedBy;
         _unitOfWork.Documents.Update(doc);
         await _unitOfWork.SaveChangesAsync();
-
-        await _auditService.LogAsync("EmployeeDocument", documentId.ToString(), AuditAction.Deleted, performedBy,
-            remarks: $"Soft-deleted {doc.FileName}");
     }
 }

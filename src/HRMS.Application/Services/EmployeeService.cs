@@ -1,6 +1,7 @@
 using AutoMapper;
 using HRMS.Application.DTOs.Common;
 using HRMS.Application.DTOs.Employee;
+using HRMS.Application.DTOs.Shift;
 using HRMS.Application.Interfaces;
 using HRMS.Domain.Entities;
 using HRMS.Domain.Enums;
@@ -8,6 +9,7 @@ using HRMS.Domain.Interfaces;
 using HRMS.Shared.Exceptions;
 using HRMS.Shared.Helpers;
 using HRMS.Shared.Wrappers;
+using Microsoft.EntityFrameworkCore;
 
 namespace HRMS.Application.Services;
 
@@ -15,13 +17,11 @@ public class EmployeeService : IEmployeeService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
-    private readonly IAuditService _auditService;
 
-    public EmployeeService(IUnitOfWork unitOfWork, IMapper mapper, IAuditService auditService)
+    public EmployeeService(IUnitOfWork unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
-        _auditService = auditService;
     }
 
     public async Task<EmployeeResponseDto> CreateAsync(EmployeeCreateDto dto, string performedBy)
@@ -47,9 +47,6 @@ public class EmployeeService : IEmployeeService
         await _unitOfWork.Employees.AddAsync(employee);
         await _unitOfWork.SaveChangesAsync();
 
-        await _auditService.LogAsync("Employee", employee.Id.ToString(), AuditAction.Created, performedBy,
-            newValues: System.Text.Json.JsonSerializer.Serialize(new { employee.EmployeeCode, employee.Email }));
-
         var created = await _unitOfWork.Employees.GetWithDetailsAsync(employee.Id);
         return _mapper.Map<EmployeeResponseDto>(created);
     }
@@ -58,21 +55,27 @@ public class EmployeeService : IEmployeeService
     {
         var employee = await _unitOfWork.Employees.GetWithDetailsAsync(id);
         if (employee == null) throw new NotFoundException("Employee", id);
-        return _mapper.Map<EmployeeResponseDto>(employee);
+        var dto = _mapper.Map<EmployeeResponseDto>(employee);
+        dto.CurrentShift = await GetCurrentShiftNameAsync(id);
+        return dto;
     }
 
     public async Task<EmployeeProfileDto> GetProfileAsync(Guid id)
     {
         var employee = await _unitOfWork.Employees.GetWithDetailsAsync(id);
         if (employee == null) throw new NotFoundException("Employee", id);
-        return _mapper.Map<EmployeeProfileDto>(employee);
+        var dto = _mapper.Map<EmployeeProfileDto>(employee);
+        dto.CurrentShift = await GetCurrentShiftNameAsync(id);
+        return dto;
     }
 
     public async Task<EmployeeResponseDto> GetByUserIdAsync(string userId)
     {
         var employee = await _unitOfWork.Employees.GetByUserIdAsync(userId);
         if (employee == null) throw new NotFoundException("Employee", userId);
-        return _mapper.Map<EmployeeResponseDto>(employee);
+        var dto = _mapper.Map<EmployeeResponseDto>(employee);
+        dto.CurrentShift = await GetCurrentShiftNameAsync(employee.Id);
+        return dto;
     }
 
     public async Task<PagedResponse<IEnumerable<EmployeeSummaryDto>>> GetAllPagedAsync(
@@ -81,7 +84,39 @@ public class EmployeeService : IEmployeeService
         var (items, totalCount) = await _unitOfWork.Employees.GetEmployeesPagedAsync(
             searchTerm, departmentId, isActive, pagination.Page, pagination.PageSize);
 
-        var dtos = _mapper.Map<IEnumerable<EmployeeSummaryDto>>(items);
+        var dtos = _mapper.Map<IEnumerable<EmployeeSummaryDto>>(items).ToList();
+        
+        if (dtos.Any())
+        {
+            var employeeIds = dtos.Select(d => d.Id).ToList();
+            var now = DateTime.UtcNow.Date;
+            var assignments = await _unitOfWork.ShiftAssignments.FindAsync(sa =>
+                employeeIds.Contains(sa.EmployeeId) &&
+                sa.IsActive &&
+                sa.AssignmentDate.Date <= now &&
+                (sa.EndDate == null || sa.EndDate.Value.Date >= now));
+            
+            var assignmentList = assignments.ToList();
+            var shiftIds = assignmentList.Select(sa => sa.ShiftId).Distinct().ToList();
+            var shifts = await _unitOfWork.Shifts.FindAsync(s => shiftIds.Contains(s.Id));
+            var shiftDict = shifts.ToDictionary(s => s.Id);
+            
+            var defaultShift = await _unitOfWork.Shifts.FirstOrDefaultAsync(s => s.IsDefault);
+
+            foreach (var dto in dtos)
+            {
+                var assignment = assignmentList.FirstOrDefault(sa => sa.EmployeeId == dto.Id);
+                if (assignment != null && shiftDict.TryGetValue(assignment.ShiftId, out var shift))
+                {
+                    dto.CurrentShift = shift.Name;
+                }
+                else
+                {
+                    dto.CurrentShift = defaultShift?.Name;
+                }
+            }
+        }
+
         return PagedResponse<IEnumerable<EmployeeSummaryDto>>.CreateResponse(
             dtos, pagination.Page, pagination.PageSize, totalCount, "Employees fetched successfully.");
     }
@@ -103,10 +138,6 @@ public class EmployeeService : IEmployeeService
         _unitOfWork.Employees.Update(employee);
         await _unitOfWork.SaveChangesAsync();
 
-        var newValues = System.Text.Json.JsonSerializer.Serialize(new { employee.Phone, employee.Address, employee.EmergencyContact });
-        await _auditService.LogAsync("Employee", id.ToString(), AuditAction.Updated, performedBy,
-            oldValues: oldValues, newValues: newValues);
-
         var updated = await _unitOfWork.Employees.GetWithDetailsAsync(id);
         return _mapper.Map<EmployeeResponseDto>(updated);
     }
@@ -123,9 +154,6 @@ public class EmployeeService : IEmployeeService
 
         _unitOfWork.Employees.Update(employee);
         await _unitOfWork.SaveChangesAsync();
-
-        await _auditService.LogAsync("Employee", id.ToString(), AuditAction.Updated, performedBy,
-            remarks: $"Deactivated: {dto.Reason}");
     }
 
     public async Task<ExperienceHistoryDto> AddExperienceAsync(Guid employeeId, ExperienceHistoryCreateDto dto, string performedBy)
@@ -182,5 +210,59 @@ public class EmployeeService : IEmployeeService
         await _unitOfWork.Designations.AddAsync(designation);
         await _unitOfWork.SaveChangesAsync();
         return _mapper.Map<DesignationDto>(designation);
+    }
+
+    public async Task<EmployeeShiftScheduleDto> GetEmployeeShiftScheduleAsync(Guid employeeId)
+    {
+        var employee = await _unitOfWork.Employees.GetByIdAsync(employeeId);
+        if (employee == null) throw new NotFoundException("Employee", employeeId);
+
+        var assignments = await _unitOfWork.ShiftAssignments.FindAsync(sa => sa.EmployeeId == employeeId);
+        
+        // Need to manually include shifts
+        var assignmentList = assignments.ToList();
+        var shiftIds = assignmentList.Select(sa => sa.ShiftId).Distinct().ToList();
+        var shifts = await _unitOfWork.Shifts.FindAsync(s => shiftIds.Contains(s.Id));
+        var shiftDict = shifts.ToDictionary(s => s.Id);
+
+        var schedule = new EmployeeShiftScheduleDto
+        {
+            EmployeeId = employeeId,
+            EmployeeName = $"{employee.FirstName} {employee.LastName}",
+            ShiftDetails = assignmentList.Select(sa => new EmployeeShiftDetailDto
+            {
+                ShiftId = sa.ShiftId,
+                ShiftName = shiftDict.ContainsKey(sa.ShiftId) ? shiftDict[sa.ShiftId].Name : "Unknown",
+                StartTime = shiftDict.ContainsKey(sa.ShiftId) ? shiftDict[sa.ShiftId].StartTime : TimeSpan.Zero,
+                EndTime = shiftDict.ContainsKey(sa.ShiftId) ? shiftDict[sa.ShiftId].EndTime : TimeSpan.Zero,
+                BreakStartTime = shiftDict.ContainsKey(sa.ShiftId) ? shiftDict[sa.ShiftId].BreakStartTime : null,
+                BreakEndTime = shiftDict.ContainsKey(sa.ShiftId) ? shiftDict[sa.ShiftId].BreakEndTime : null,
+                AssignmentDate = sa.AssignmentDate,
+                EndDate = sa.EndDate,
+                IsActive = sa.IsActive,
+                Reason = sa.Reason
+            }).ToList()
+        };
+
+        return schedule;
+    }
+
+    private async Task<string?> GetCurrentShiftNameAsync(Guid employeeId)
+    {
+        var now = DateTime.UtcNow.Date;
+        var assignment = await _unitOfWork.ShiftAssignments.FirstOrDefaultAsync(sa =>
+            sa.EmployeeId == employeeId &&
+            sa.IsActive &&
+            sa.AssignmentDate.Date <= now &&
+            (sa.EndDate == null || sa.EndDate.Value.Date >= now));
+
+        if (assignment != null)
+        {
+            var shift = await _unitOfWork.Shifts.GetByIdAsync(assignment.ShiftId);
+            return shift?.Name;
+        }
+
+        var defaultShift = await _unitOfWork.Shifts.FirstOrDefaultAsync(s => s.IsDefault);
+        return defaultShift?.Name;
     }
 }

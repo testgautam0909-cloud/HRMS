@@ -22,11 +22,13 @@ public class UnitOfWork : IUnitOfWork
     private ISalarySlipRepository? _salarySlips;
     private IDocumentRepository? _documents;
     private IChatRepository? _chats;
-    private IAuditLogRepository? _auditLogs;
+
     private IRefreshTokenRepository? _refreshTokens;
     private IGenericRepository<Department>? _departments;
     private IGenericRepository<Designation>? _designations;
     private IGenericRepository<ExperienceHistory>? _experienceHistories;
+    private IGenericRepository<Shift>? _shifts;
+    private IGenericRepository<ShiftAssignment>? _shiftAssignments;
 
     public UnitOfWork(AppDbContext context)
     {
@@ -44,11 +46,13 @@ public class UnitOfWork : IUnitOfWork
     public ISalarySlipRepository SalarySlips => _salarySlips ??= new SalarySlipRepository(_context);
     public IDocumentRepository Documents => _documents ??= new DocumentRepository(_context);
     public IChatRepository Chats => _chats ??= new ChatRepository(_context);
-    public IAuditLogRepository AuditLogs => _auditLogs ??= new AuditLogRepository(_context);
+
     public IRefreshTokenRepository RefreshTokens => _refreshTokens ??= new RefreshTokenRepository(_context);
     public IGenericRepository<Department> Departments => _departments ??= new GenericRepository<Department>(_context);
     public IGenericRepository<Designation> Designations => _designations ??= new GenericRepository<Designation>(_context);
     public IGenericRepository<ExperienceHistory> ExperienceHistories => _experienceHistories ??= new GenericRepository<ExperienceHistory>(_context);
+    public IGenericRepository<Shift> Shifts => _shifts ??= new ShiftRepository(_context);
+    public IGenericRepository<ShiftAssignment> ShiftAssignments => _shiftAssignments ??= new ShiftAssignmentRepository(_context);
 
     public async Task<int> SaveChangesAsync()
     {

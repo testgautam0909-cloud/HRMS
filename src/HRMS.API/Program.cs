@@ -99,7 +99,8 @@ builder.Services.AddScoped<ISalaryService, SalaryService>();
 builder.Services.AddScoped<IPayrollService, PayrollService>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IChatService, ChatService>();
-builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<IShiftService, ShiftService>();
+
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ISalarySlipService, SalarySlipService>();

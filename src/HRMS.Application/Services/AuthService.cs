@@ -21,20 +21,17 @@ public class AuthService : IAuthService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IConfiguration _configuration;
     private readonly IEmailService _emailService;
-    private readonly IAuditService _auditService;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
         IUnitOfWork unitOfWork,
         IConfiguration configuration,
-        IEmailService emailService,
-        IAuditService auditService)
+        IEmailService emailService)
     {
         _userManager = userManager;
         _unitOfWork = unitOfWork;
         _configuration = configuration;
         _emailService = emailService;
-        _auditService = auditService;
     }
 
     public async Task<TokenResponseDto> RegisterAsync(RegisterDto dto, string performedBy)
@@ -82,10 +79,9 @@ public class AuthService : IAuthService
         user.EmployeeId = emp.Id;
         await _userManager.UpdateAsync(user);
         await _unitOfWork.SaveChangesAsync();
-
-        await _auditService.LogAsync("Employee", emp.Id.ToString(), AuditAction.Created, performedBy);
+                
         _ = _emailService.SendWelcomeEmailAsync(dto.Email, $"{dto.FirstName} {dto.LastName}", pwd);
-
+        
         return await GenerateTokenResponseAsync(user);
     }
 
@@ -107,8 +103,7 @@ public class AuthService : IAuthService
         await _userManager.ResetAccessFailedCountAsync(user);
         user.LastLoginAt = DateTime.UtcNow;
         await _userManager.UpdateAsync(user);
-        await _auditService.LogAsync("User", user.Id, AuditAction.LoginSuccess, user.Id, ipAddress: ipAddress);
-
+        
         return await GenerateTokenResponseAsync(user);
     }
 
@@ -158,23 +153,6 @@ public class AuthService : IAuthService
         if (!result.Succeeded)
             throw new Shared.Exceptions.ValidationException(
                 result.Errors.ToDictionary(e => e.Code, e => new[] { e.Description }));
-
-        await _auditService.LogAsync("User", userId, AuditAction.PasswordChanged, userId);
-    }
-
-    public async Task ResetPasswordAsync(ResetPasswordDto dto, string performedBy)
-    {
-        var user = await _userManager.FindByIdAsync(dto.UserId);
-        if (user == null) throw new NotFoundException("User", dto.UserId);
-
-        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-        var result = await _userManager.ResetPasswordAsync(user, token, dto.NewPassword);
-        if (!result.Succeeded)
-            throw new Shared.Exceptions.ValidationException(
-                result.Errors.ToDictionary(e => e.Code, e => new[] { e.Description }));
-
-        await _auditService.LogAsync("User", dto.UserId, AuditAction.PasswordReset, performedBy);
-        _ = _emailService.SendPasswordResetEmailAsync(user.Email!, user.UserName!, dto.NewPassword);
     }
 
     public async Task ForgotPasswordAsync(ForgotPasswordDto dto)
@@ -188,7 +166,6 @@ public class AuthService : IAuthService
         
         if (result.Succeeded)
         {
-            await _auditService.LogAsync("User", user.Id, AuditAction.PasswordReset, "System-ForgotPassword");
             _ = _emailService.SendPasswordResetEmailAsync(user.Email!, user.UserName!, newPwd);
         }
     }

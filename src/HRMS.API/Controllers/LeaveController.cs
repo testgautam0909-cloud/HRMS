@@ -73,4 +73,14 @@ public class LeaveController : ControllerBase
         var by = User.FindFirst(ClaimTypes.Email)?.Value ?? "system";
         return Ok(ApiResponse<LeaveTypeDto>.Ok(await _service.CreateLeaveTypeAsync(dto, by)));
     }
+
+    // Temporary endpoint to allocate leave balances for testing
+    [HttpPost("allocate-balance/{employeeId:guid}/{year:int}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> AllocateLeaveBalanceForEmployee(Guid employeeId, int year)
+    {
+        var by = User.FindFirst(ClaimTypes.Email)?.Value ?? "system";
+        await _service.AllocateLeaveBalancesAsync(employeeId, year, by);
+        return Ok(ApiResponse<object>.Ok(null!, "Leave balances allocated successfully."));
+    }
 }

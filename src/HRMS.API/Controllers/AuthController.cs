@@ -59,15 +59,6 @@ public class AuthController : ControllerBase
         return Ok(ApiResponse<object>.Ok(null!, "Password changed successfully."));
     }
 
-    [HttpPost("reset-password")]
-    [Authorize(Roles = "Admin,HR")]
-    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
-    {
-        var performedBy = User.FindFirst(ClaimTypes.Email)?.Value ?? "system";
-        await _authService.ResetPasswordAsync(dto, performedBy);
-        return Ok(ApiResponse<object>.Ok(null!, "Password reset successfully."));
-    }
-
     [HttpPost("forgot-password")]
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]

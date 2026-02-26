@@ -137,9 +137,11 @@ public static class DbSeeder
             };
 
             await context.Employees.AddAsync(adminEmployee);
+            await context.SaveChangesAsync();
+            
+            // Update user with employee ID after saving employee
             adminUser.EmployeeId = adminEmployee.Id;
             await userManager.UpdateAsync(adminUser);
-            await context.SaveChangesAsync();
         }
     }
 }

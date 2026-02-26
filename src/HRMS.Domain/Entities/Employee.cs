@@ -33,4 +33,5 @@ public class Employee : BaseEntity
     public ICollection<EmployeeDocument> Documents { get; set; } = new List<EmployeeDocument>();
     public ICollection<ExperienceHistory> ExperienceHistories { get; set; } = new List<ExperienceHistory>();
     public ICollection<IncrementRequest> IncrementRequests { get; set; } = new List<IncrementRequest>();
+    public ICollection<ShiftAssignment> ShiftAssignments { get; set; } = new List<ShiftAssignment>();
 }

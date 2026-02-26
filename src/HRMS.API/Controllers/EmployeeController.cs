@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using HRMS.Application.DTOs.Common;
 using HRMS.Application.DTOs.Employee;
+using HRMS.Application.DTOs.Shift;
 using HRMS.Application.Interfaces;
 using HRMS.Shared.Wrappers;
 using Microsoft.AspNetCore.Authorization;
@@ -124,5 +125,13 @@ public class EmployeeController : ControllerBase
             .Cast<HRMS.Domain.Enums.Gender>()
             .Select(e => new { Id = (int)e, Name = e.ToString() });
         return Ok(ApiResponse<object>.Ok(genders));
+    }
+
+    [HttpGet("{id:guid}/shift-schedule")]
+    [Authorize(Roles = "Admin,HR,Manager,Employee")]
+    public async Task<IActionResult> GetEmployeeShiftSchedule(Guid id)
+    {
+        var schedule = await _service.GetEmployeeShiftScheduleAsync(id);
+        return Ok(ApiResponse<EmployeeShiftScheduleDto>.Ok(schedule, "Employee shift schedule retrieved successfully."));
     }
 }

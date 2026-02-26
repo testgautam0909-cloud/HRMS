@@ -14,13 +14,11 @@ public class PayrollService : IPayrollService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
-    private readonly IAuditService _auditService;
 
-    public PayrollService(IUnitOfWork unitOfWork, IMapper mapper, IAuditService auditService)
+    public PayrollService(IUnitOfWork unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
-        _auditService = auditService;
     }
 
     public async Task<IEnumerable<PayrollResponseDto>> GeneratePayrollAsync(PayrollGenerateDto dto, string performedBy)
@@ -90,10 +88,7 @@ public class PayrollService : IPayrollService
         }
 
         await _unitOfWork.SaveChangesAsync();
-
-        await _auditService.LogAsync("Payroll", $"{dto.Month}/{dto.Year}", AuditAction.Created, performedBy,
-            remarks: $"Generated payroll for {results.Count} employees");
-
+        
         return _mapper.Map<IEnumerable<PayrollResponseDto>>(results);
     }
 

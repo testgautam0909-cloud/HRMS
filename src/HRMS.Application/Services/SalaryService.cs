@@ -14,13 +14,11 @@ public class SalaryService : ISalaryService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
-    private readonly IAuditService _auditService;
 
-    public SalaryService(IUnitOfWork unitOfWork, IMapper mapper, IAuditService auditService)
+    public SalaryService(IUnitOfWork unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
-        _auditService = auditService;
     }
 
     public async Task<SalaryStructureResponseDto> CreateStructureAsync(SalaryStructureCreateDto dto, string performedBy)

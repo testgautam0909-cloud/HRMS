@@ -16,11 +16,12 @@ public interface IUnitOfWork : IDisposable
     ISalarySlipRepository SalarySlips { get; }
     IDocumentRepository Documents { get; }
     IChatRepository Chats { get; }
-    IAuditLogRepository AuditLogs { get; }
     IRefreshTokenRepository RefreshTokens { get; }
     IGenericRepository<Department> Departments { get; }
     IGenericRepository<Designation> Designations { get; }
     IGenericRepository<ExperienceHistory> ExperienceHistories { get; }
+    IGenericRepository<Shift> Shifts { get; }
+    IGenericRepository<ShiftAssignment> ShiftAssignments { get; }
     Task<int> SaveChangesAsync();
     Task BeginTransactionAsync();
     Task CommitTransactionAsync();
