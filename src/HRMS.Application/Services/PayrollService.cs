@@ -26,7 +26,7 @@ public class PayrollService : IPayrollService
         var employees = dto.EmployeeIds != null && dto.EmployeeIds.Any()
             ? (await Task.WhenAll(dto.EmployeeIds.Select(id => _unitOfWork.Employees.GetByIdAsync(id))))
                 .Where(e => e != null && e.IsActive).ToList()
-            : (await _unitOfWork.Employees.FindAsync(e => e.IsActive)).ToList();
+            : (await _unitOfWork.Employees.FindAsync(e => e.IsActive)).Cast<Employee?>().ToList();
 
         var results = new List<PayrollRecord>();
 

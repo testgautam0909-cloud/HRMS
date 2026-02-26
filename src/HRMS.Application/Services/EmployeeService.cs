@@ -9,6 +9,7 @@ using HRMS.Domain.Interfaces;
 using HRMS.Shared.Exceptions;
 using HRMS.Shared.Helpers;
 using HRMS.Shared.Wrappers;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace HRMS.Application.Services;
@@ -17,11 +18,15 @@ public class EmployeeService : IEmployeeService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly ILeaveService _leaveService;
 
-    public EmployeeService(IUnitOfWork unitOfWork, IMapper mapper)
+    public EmployeeService(IUnitOfWork unitOfWork, IMapper mapper, UserManager<ApplicationUser> userManager, ILeaveService leaveService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _userManager = userManager;
+        _leaveService = leaveService;
     }
 
     public async Task<EmployeeResponseDto> CreateAsync(EmployeeCreateDto dto, string performedBy)

@@ -142,6 +142,97 @@ public static class DbSeeder
             // Update user with employee ID after saving employee
             adminUser.EmployeeId = adminEmployee.Id;
             await userManager.UpdateAsync(adminUser);
+            
+            await CreateTestEmployeeAsync(userManager, context, "arjun.patel@company.com", "Arjun", "Patel", "EMP-2024-0002");
         }
+    }
+
+    private static async Task CreateTestEmployeeAsync(UserManager<ApplicationUser> userManager, AppDbContext context, string email, string firstName, string lastName, string employeeCode)
+    {
+        var existingUser = await userManager.FindByEmailAsync(email);
+        if (existingUser != null) return;
+        
+        var user = new ApplicationUser
+        {
+            UserName = email,
+            Email = email,
+            EmailConfirmed = true,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var result = await userManager.CreateAsync(user, "Password@123");
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(user, "Employee");
+
+            var department = await context.Departments.FirstAsync(d => d.Name == "Engineering");
+            var designation = await context.Designations.FirstAsync(d => d.Title == "Software Engineer");
+
+            var employee = new Employee
+            {
+                Id = Guid.NewGuid(),
+                EmployeeCode = employeeCode,
+                FirstName = firstName,
+                LastName = lastName,
+                Email = email,
+                Phone = "1234567890",
+                DateOfBirth = new DateTime(1995, 5, 15),
+                Gender = Domain.Enums.Gender.Male,
+                DepartmentId = department.Id,
+                DesignationId = designation.Id,
+                EmploymentType = Domain.Enums.EmploymentType.FullTime,
+                JoiningDate = new DateTime(2024, 1, 1),
+                IsActive = true,
+                UserId = user.Id,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedBy = "system",
+                UpdatedBy = "system"
+            };
+
+            await context.Employees.AddAsync(employee);
+            await context.SaveChangesAsync();
+            
+            user.EmployeeId = employee.Id;
+            await userManager.UpdateAsync(user);
+            
+            await AllocateLeaveBalancesForEmployee(context, employee.Id, "system");
+        }
+    }
+    
+    private static async Task AllocateLeaveBalancesForEmployee(AppDbContext context, Guid employeeId, string performedBy)
+    {
+        var leaveTypes = await context.LeaveTypes.Where(lt => !lt.IsDeleted).ToListAsync();
+        var year = DateTime.UtcNow.Year;
+        
+        foreach (var lt in leaveTypes)
+        {
+            var existing = await context.LeaveBalances
+                .FirstOrDefaultAsync(lb => lb.EmployeeId == employeeId && lb.LeaveTypeId == lt.Id && lb.Year == year);
+                
+            if (existing != null) continue;
+            
+            var allocation = lt.DefaultDays;
+            
+            var balance = new LeaveBalance
+            {
+                Id = Guid.NewGuid(),
+                EmployeeId = employeeId,
+                LeaveTypeId = lt.Id,
+                Year = year,
+                TotalAllocated = allocation,
+                Used = 0,
+                Remaining = allocation,
+                CreatedBy = performedBy,
+                UpdatedBy = performedBy,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            
+            await context.LeaveBalances.AddAsync(balance);
+        }
+        
+        await context.SaveChangesAsync();
     }
 }
