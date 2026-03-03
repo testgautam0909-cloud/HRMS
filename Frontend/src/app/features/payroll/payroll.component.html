@@ -1,0 +1,110 @@
+<div class="space-y-8 animate-fade-in pb-12 p-6">
+    <app-page-header title="Payroll & Salary"
+        subtitle="View your compensation history and manage salary slips securely."></app-page-header>
+
+    <!-- Quick Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <mat-card
+            class="bg-primary-600 text-white p-8 rounded-3xl shadow-xl shadow-primary-600/20 relative overflow-hidden group border-0 text-left">
+            <div class="relative z-10">
+                <p class="text-[10px] font-black text-primary-200 uppercase tracking-[0.2em] mb-2">Last Net Salary</p>
+                <h3 class="text-4xl font-black mb-1 tracking-tight">{{ lastSalary()?.netSalary |
+                    currency:'USD':'symbol':'1.0-2' }}</h3>
+                <p class="text-xs font-bold text-primary-100 opacity-80">{{ lastSalary()?.monthName }} {{
+                    lastSalary()?.year }}</p>
+            </div>
+            <mat-icon
+                class="absolute -right-4 -bottom-4 text-white style-24 opacity-10 scale-[4] group-hover:scale-[4.5] transition-transform">payments</mat-icon>
+        </mat-card>
+
+        <mat-card class="p-8 rounded-3xl shadow-sm border-0 bg-white flex flex-col justify-center text-left">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] mb-2">Gross Earnings</p>
+            <h3 class="text-3xl font-black text-slate-900 tracking-tight">{{ lastSalary()?.grossSalary |
+                currency:'USD':'symbol':'1.0-2' }}</h3>
+            <div class="mt-4 flex items-center gap-2">
+                <app-status-chip label="Fully Processed" type="success"></app-status-chip>
+            </div>
+        </mat-card>
+
+        <mat-card class="p-8 rounded-3xl shadow-sm border-0 bg-white flex flex-col justify-center text-left">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] mb-2">Total Deductions</p>
+            <h3 class="text-3xl font-black text-slate-900 tracking-tight">{{ lastSalary()?.totalDeductions |
+                currency:'USD':'symbol':'1.0-2' }}</h3>
+            <div class="mt-4 flex items-center gap-2">
+                <app-status-chip label="Tax & Benefits" type="error"></app-status-chip>
+            </div>
+        </mat-card>
+    </div>
+
+    <!-- Payroll History Table -->
+    <mat-card class="rounded-3xl border-0 shadow-sm overflow-hidden bg-white">
+        <div class="p-8 border-b border-slate-50 flex items-center justify-between">
+            <h3 class="text-xl font-bold text-slate-900 flex items-center gap-3">
+                <mat-icon class="text-primary-600">receipt_long</mat-icon>
+                Compensation History
+            </h3>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left" *ngIf="payrolls().length > 0; else emptyState">
+                <thead>
+                    <tr class="bg-slate-50/30">
+                        <th class="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Period
+                        </th>
+                        <th class="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Gross
+                            Salary</th>
+                        <th class="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Deductions
+                        </th>
+                        <th class="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Net
+                            Payable</th>
+                        <th class="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status
+                        </th>
+                        <th
+                            class="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">
+                            Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    <tr *ngFor="let record of payrolls()"
+                        class="hover:bg-slate-50/30 transition-colors group cursor-pointer">
+                        <td class="px-8 py-6">
+                            <p class="font-bold text-slate-900 group-hover:text-primary-700 transition-colors">{{
+                                record.monthName }} {{ record.year }}</p>
+                        </td>
+                        <td class="px-8 py-6">
+                            <p class="text-sm font-bold text-slate-500">{{ record.grossSalary | currency }}</p>
+                        </td>
+                        <td class="px-8 py-6">
+                            <p class="text-sm font-bold text-red-500">-{{ record.totalDeductions | currency }}</p>
+                        </td>
+                        <td class="px-8 py-6">
+                            <span class="text-base font-black text-slate-900">{{ record.netSalary | currency }}</span>
+                        </td>
+                        <td class="px-8 py-6">
+                            <app-status-chip [label]="record.status"
+                                [type]="getStatusType(record.status)"></app-status-chip>
+                        </td>
+                        <td class="px-8 py-6 text-right">
+                            <div class="flex items-center justify-end gap-2">
+                                <button mat-icon-button class="text-slate-300 hover:text-primary-600 transition-all"
+                                    title="View Details">
+                                    <mat-icon>visibility</mat-icon>
+                                </button>
+                                <button mat-icon-button (click)="downloadSlip(record.id); $event.stopPropagation()"
+                                    class="text-slate-300 hover:text-accent-600 transition-all" title="Download Slip">
+                                    <mat-icon>download</mat-icon>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <ng-template #emptyState>
+                <app-empty-state icon="credit_card_off" title="No Payroll Records"
+                    description="Your monthly compensation records and salary slips will appear here once processed.">
+                </app-empty-state>
+            </ng-template>
+        </div>
+    </mat-card>
+</div>

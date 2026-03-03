@@ -1,0 +1,41 @@
+:host {
+    display: block;
+}
+
+.nav-link {
+    position: relative;
+    overflow: hidden;
+}
+
+.active-link {
+    background-color: #f0f4ff !important;
+    color: #4f46e5 !important;
+}
+
+.active-link::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 25%;
+    height: 50%;
+    width: 4px;
+    background: #4f46e5;
+    border-radius: 0 4px 4px 0;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #e2e8f0;
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e1;
+}

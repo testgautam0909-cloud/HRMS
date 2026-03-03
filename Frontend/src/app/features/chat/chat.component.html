@@ -1,0 +1,115 @@
+<div
+    class="h-[calc(100vh-12rem)] flex bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden animate-fade-in mx-auto">
+    <!-- Sidebar: Conversations -->
+    <div class="w-80 border-r border-slate-50 flex flex-col bg-slate-50/20">
+        <div class="p-8">
+            <h2 class="text-2xl font-black text-slate-900 mb-6 tracking-tight">Messages</h2>
+            <div class="relative group">
+                <mat-icon
+                    class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-600 transition-colors">search</mat-icon>
+                <input type="text" placeholder="Search chats..."
+                    class="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500/40 transition-all placeholder:text-slate-400">
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-4 pb-6 space-y-1 custom-scrollbar">
+            <div *ngFor="let conv of conversations()" (click)="selectConversation(conv)"
+                [class]="'p-4 rounded-3xl flex items-center gap-4 cursor-pointer transition-all ' + (selectedConv()?.id === conv.id ? 'bg-white shadow-xl shadow-slate-200/50 border border-slate-100' : 'hover:bg-white/60 border border-transparent')">
+                <div class="relative">
+                    <div
+                        class="w-14 h-14 bg-primary-100 rounded-2xl flex items-center justify-center text-primary-600 font-black text-lg">
+                        {{ conv.name.charAt(0) }}
+                    </div>
+                    <div *ngIf="conv.isOnline"
+                        class="absolute -right-1 -bottom-1 w-4 h-4 bg-green-500 border-4 border-white rounded-full shadow-sm">
+                    </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-baseline mb-1">
+                        <h4 class="font-black text-slate-900 truncate tracking-tight">{{ conv.name }}</h4>
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{{
+                            conv.lastMessageTime | date:'shortTime' }}</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 truncate font-semibold leading-none">{{ conv.lastMessage }}</p>
+                </div>
+            </div>
+
+            <app-empty-state *ngIf="conversations().length === 0" icon="forum" title="No Messages"
+                description="Your workspace conversations will appear here. Start a new chat to begin.">
+            </app-empty-state>
+        </div>
+    </div>
+
+    <!-- Main Chat Area -->
+    <div class="flex-1 flex flex-col bg-white">
+        <!-- Chat Header -->
+        <div *ngIf="selectedConv()" class="p-8 border-b border-slate-50 flex items-center justify-between">
+            <div class="flex items-center gap-4 text-left">
+                <div
+                    class="w-14 h-14 bg-slate-900 rounded-2xl flex items-center justify-center text-white font-black text-lg shadow-lg">
+                    {{ selectedConv()?.name.charAt(0) }}
+                </div>
+                <div>
+                    <h3 class="text-xl font-black text-slate-900 leading-none mb-1 tracking-tight">{{
+                        selectedConv()?.name }}</h3>
+                    <p
+                        class="text-[10px] font-black uppercase tracking-[0.2em] text-green-500 flex items-center gap-1.5 px-0.5">
+                        <span
+                            class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shadow-sm shadow-green-500/50"></span>
+                        Active Now
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button mat-icon-button
+                    class="text-slate-300 hover:text-primary-600 transition-all"><mat-icon>search</mat-icon></button>
+                <button mat-icon-button
+                    class="text-slate-300 hover:text-primary-600 transition-all"><mat-icon>more_vert</mat-icon></button>
+            </div>
+        </div>
+
+        <!-- Messages Area -->
+        <div #scrollContainer class="flex-1 overflow-y-auto p-10 space-y-8 bg-slate-50/10 custom-scrollbar">
+            <div *ngFor="let msg of chatService.messages()"
+                [class]="'flex ' + (msg.senderId === currentUserId ? 'justify-end' : 'justify-start')">
+                <div [class]="'max-w-[70%] group ' + (msg.senderId === currentUserId ? 'order-2' : 'order-1')">
+                    <div
+                        [class]="'px-6 py-4 rounded-[2rem] shadow-sm ' + (msg.senderId === currentUserId ? 'bg-primary-600 text-white rounded-tr-none shadow-primary-200' : 'bg-white border border-slate-100 text-slate-800 rounded-tl-none')">
+                        <p class="text-sm font-bold leading-relaxed">{{ msg.content }}</p>
+                    </div>
+                    <p
+                        [class]="'text-[10px] font-black text-slate-400 mt-2 uppercase tracking-[0.15em] ' + (msg.senderId === currentUserId ? 'text-right pr-2' : 'text-left pl-2')">
+                        {{ msg.timestamp | date:'shortTime' }}
+                    </p>
+                </div>
+            </div>
+
+            <div *ngIf="!selectedConv()" class="h-full flex flex-col items-center justify-center text-center p-12">
+                <div
+                    class="w-24 h-24 bg-slate-50 rounded-[3rem] flex items-center justify-center text-primary-200 mb-8 shadow-inner">
+                    <mat-icon style="font-size: 48px; width: 48px; height: 48px;">forum</mat-icon>
+                </div>
+                <h3 class="text-2xl font-black text-slate-900 tracking-tight">Your Inbox</h3>
+                <p class="text-slate-400 font-bold max-w-xs mt-3 leading-relaxed uppercase tracking-tighter text-xs">
+                    Select a conversation from the sidebar to start messaging your team.</p>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div *ngIf="selectedConv()" class="p-8 border-t border-slate-50 bg-white">
+            <div
+                class="flex items-center gap-4 bg-slate-50 p-3 rounded-3xl border border-slate-100 focus-within:border-primary-500/20 focus-within:bg-white focus-within:ring-[6px] focus-within:ring-primary-500/5 transition-all duration-300">
+                <button mat-icon-button class="text-slate-300 hover:text-primary-600 transition-all flex-shrink-0">
+                    <mat-icon>add_circle_outline</mat-icon>
+                </button>
+                <input type="text" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()"
+                    placeholder="Type your message here..."
+                    class="flex-1 bg-transparent border-none outline-none px-2 py-3 font-bold text-slate-900 placeholder:text-slate-300 text-sm">
+                <button mat-flat-button color="primary" (click)="sendMessage()" [disabled]="!newMessage.trim()"
+                    class="!h-14 !w-14 !min-w-0 !p-0 !rounded-2xl !shadow-xl !shadow-primary-600/20 flex items-center justify-center transition-transform active:scale-95">
+                    <mat-icon class="text-white scale-125">send</mat-icon>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

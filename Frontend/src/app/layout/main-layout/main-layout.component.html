@@ -1,0 +1,24 @@
+<div class="flex h-screen bg-slate-50 overflow-hidden">
+    <!-- Sidebar -->
+    <app-sidebar></app-sidebar>
+
+    <div class="flex-1 flex flex-col min-w-0">
+        <!-- Header -->
+        <app-header></app-header>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto p-8 relative scroll-smooth">
+            <div class="max-w-7xl mx-auto space-y-8 animate-fade-in">
+                <router-outlet></router-outlet>
+            </div>
+
+            <!-- Decorative Background Elements -->
+            <div
+                class="fixed top-0 right-0 -z-10 w-96 h-96 bg-primary-500/5 blur-[120px] rounded-full pointer-events-none">
+            </div>
+            <div
+                class="fixed bottom-0 left-64 -z-10 w-64 h-64 bg-accent-500/5 blur-[100px] rounded-full pointer-events-none">
+            </div>
+        </main>
+    </div>
+</div>

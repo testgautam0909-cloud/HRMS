@@ -204,11 +204,19 @@ public class AuthService : IAuthService
         await _unitOfWork.RefreshTokens.AddAsync(refreshEntity);
         await _unitOfWork.SaveChangesAsync();
 
+        string fullName = user.Email ?? "User";
+        if (user.EmployeeId.HasValue)
+        {
+            var emp = await _unitOfWork.Employees.GetByIdAsync(user.EmployeeId.Value);
+            if (emp != null) fullName = $"{emp.FirstName} {emp.LastName}";
+        }
+
         return new TokenResponseDto
         {
             AccessToken = accessToken, RefreshToken = refreshStr,
             AccessTokenExpiry = jwt.ValidTo, UserId = user.Id,
-            Email = user.Email!, Role = role, EmployeeId = user.EmployeeId
+            Email = user.Email!, Role = role, EmployeeId = user.EmployeeId,
+            FullName = fullName
         };
     }
 }

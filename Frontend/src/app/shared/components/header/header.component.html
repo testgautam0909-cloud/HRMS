@@ -1,0 +1,107 @@
+<header
+    class="h-20 bg-white/80 backdrop-blur-md border-b border-slate-50 px-8 flex items-center justify-between sticky top-0 z-[40] transition-all duration-300">
+    <div class="flex items-center gap-6 flex-1 max-w-2xl">
+        <div class="relative w-full group">
+            <mat-icon
+                class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary-600 transition-colors">search</mat-icon>
+            <input type="text" placeholder="Search resources, employees, or files..." (focus)="isSearchFocused = true"
+                (blur)="isSearchFocused = false"
+                class="w-full pl-12 pr-4 py-3 bg-slate-50 hover:bg-slate-100/50 border border-transparent focus:bg-white focus:border-primary-500/20 rounded-2xl text-sm font-bold tracking-tight transition-all outline-none placeholder:text-slate-300">
+            <div
+                class="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-focus-within:opacity-100 transition-opacity">
+                <span class="px-1.5 py-0.5 rounded-md bg-slate-100 text-[10px] font-black text-slate-400">⌘</span>
+                <span class="px-1.5 py-0.5 rounded-md bg-slate-100 text-[10px] font-black text-slate-400">K</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-6">
+        <div class="flex items-center gap-2">
+            <button mat-icon-button matTooltip="Quick Actions"
+                class="text-slate-400 hover:text-slate-900 transition-all">
+                <mat-icon>add_circle_outline</mat-icon>
+            </button>
+            <button mat-icon-button matTooltip="Help & Support"
+                class="text-slate-400 hover:text-slate-900 transition-all">
+                <mat-icon>help_outline</mat-icon>
+            </button>
+            <button mat-icon-button [matMenuTriggerFor]="notificationMenu" matBadge="3" matBadgeColor="warn"
+                matBadgeSize="small" class="text-slate-400 hover:text-slate-900 transition-all active:scale-95">
+                <mat-icon>notifications_none</mat-icon>
+            </button>
+        </div>
+
+        <mat-menu #notificationMenu="matMenu" xPosition="before"
+            class="mt-4 rounded-3xl shadow-2xl border-0 overflow-hidden min-w-[320px]">
+            <div class="p-6 border-b border-slate-50">
+                <h4 class="font-black text-slate-900 tracking-tight">Notifications</h4>
+            </div>
+            <div class="py-2">
+                <button mat-menu-item class="!px-6 !h-auto !py-4 hover:bg-slate-50">
+                    <div class="flex gap-4">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center flex-shrink-0">
+                            <mat-icon>event_note</mat-icon>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-bold text-slate-900 whitespace-normal leading-tight">Leave request
+                                approved</p>
+                            <p class="text-[10px] font-bold text-slate-400 mt-1 uppercase">2 hours ago</p>
+                        </div>
+                    </div>
+                </button>
+                <!-- More notification items... -->
+            </div>
+            <div class="p-4 bg-slate-50 text-center">
+                <button mat-button color="primary" class="font-black uppercase tracking-widest text-[10px]">View All
+                    Alerts</button>
+            </div>
+        </mat-menu>
+
+        <div class="h-6 w-[1px] bg-slate-100 mx-2"></div>
+
+        <div [matMenuTriggerFor]="userMenu"
+            class="flex items-center gap-4 pl-3 pr-2 py-2 group cursor-pointer hover:bg-slate-50 rounded-2xl transition-all border border-transparent hover:border-slate-100">
+            <div class="text-right hidden md:block">
+                <p class="text-sm font-black text-slate-900 leading-none mb-1 tracking-tight">{{ user()?.fullName }}</p>
+                <p class="text-[10px] font-black text-primary-600 uppercase tracking-[0.2em] opacity-60">{{ user()?.role
+                    }}</p>
+            </div>
+            <div class="relative">
+                <div
+                    class="w-12 h-12 bg-slate-900 rounded-[18px] flex items-center justify-center text-white font-black text-lg shadow-lg group-hover:scale-105 transition-transform duration-300">
+                    {{ user()?.fullName?.charAt(0) }}
+                </div>
+                <div class="absolute -right-0.5 -bottom-0.5 w-4 h-4 bg-green-500 border-4 border-white rounded-full">
+                </div>
+            </div>
+        </div>
+
+        <mat-menu #userMenu="matMenu" xPosition="before"
+            class="mt-4 rounded-[2rem] shadow-2xl border-0 overflow-hidden min-w-[240px]">
+            <div class="p-6 text-center border-b border-slate-50">
+                <div
+                    class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400 mx-auto mb-4">
+                    <mat-icon style="font-size: 32px; width: 32px; height: 32px;">person</mat-icon>
+                </div>
+                <h4 class="font-black text-slate-900 tracking-tight">{{ user()?.fullName }}</h4>
+                <p class="text-xs font-bold text-slate-400">{{ user()?.email }}</p>
+            </div>
+            <div class="p-2">
+                <button mat-menu-item class="!rounded-2xl">
+                    <mat-icon class="mr-3 text-slate-400">account_circle</mat-icon>
+                    <span class="font-bold text-sm">Account Settings</span>
+                </button>
+                <button mat-menu-item class="!rounded-2xl">
+                    <mat-icon class="mr-3 text-slate-400">security</mat-icon>
+                    <span class="font-bold text-sm">Security</span>
+                </button>
+                <mat-divider class="my-2 opacity-50"></mat-divider>
+                <button mat-menu-item (click)="logout()" class="!rounded-2xl text-red-600 group">
+                    <mat-icon class="mr-3 text-red-500 transition-transform group-hover:rotate-12">logout</mat-icon>
+                    <span class="font-bold text-sm text-red-600">Sign Out</span>
+                </button>
+            </div>
+        </mat-menu>
+    </div>
+</header>

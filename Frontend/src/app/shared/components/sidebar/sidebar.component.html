@@ -1,0 +1,42 @@
+<aside class="w-64 h-screen bg-white border-r border-slate-100 flex flex-col transition-all duration-300 z-50">
+    <div class="p-8 flex items-center gap-4">
+        <div
+            class="w-12 h-12 bg-primary-600 rounded-[18px] flex items-center justify-center text-white shadow-lg shadow-primary-600/20">
+            <mat-icon style="font-size: 28px; width: 28px; height: 28px;">corporate_fare</mat-icon>
+        </div>
+        <div>
+            <span class="text-2xl font-black tracking-tighter text-slate-900 block leading-none">HRMS</span>
+            <span
+                class="text-[9px] font-black uppercase tracking-[0.3em] text-primary-600 opacity-60">Professional</span>
+        </div>
+    </div>
+
+    <nav class="flex-1 px-4 space-y-1.5 mt-8 overflow-y-auto custom-scrollbar">
+        <div class="px-4 mb-4">
+            <p class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Management</p>
+        </div>
+
+        <ng-container *ngFor="let item of navItems">
+            <a *ngIf="!item.roles || hasRole(item.roles)" [routerLink]="item.path" [matTooltip]="item.tooltip"
+                matTooltipPosition="right" routerLinkActive="active-link"
+                class="nav-link flex items-center justify-between px-4 py-3.5 rounded-2xl text-slate-500 hover:text-primary-600 hover:bg-primary-50/50 transition-all duration-300 group">
+                <div class="flex items-center gap-4">
+                    <mat-icon class="group-hover:scale-110 transition-transform text-2xl"
+                        [class.text-primary-600]="router.isActive(item.path, {paths: 'exact', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored'})">{{
+                        item.icon }}</mat-icon>
+                    <span class="font-bold text-sm tracking-tight">{{ item.label }}</span>
+                </div>
+                <mat-icon
+                    class="text-lg opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all">chevron_right</mat-icon>
+            </a>
+        </ng-container>
+    </nav>
+
+    <div class="p-6 border-t border-slate-50 bg-slate-50/30">
+        <button (click)="logout()" matRipple
+            class="w-full flex items-center gap-4 px-4 py-4 rounded-2xl text-red-500 hover:bg-red-50 transition-all duration-300 group font-bold text-sm">
+            <mat-icon class="group-hover:rotate-12 transition-transform">logout</mat-icon>
+            <span>Sign Out</span>
+        </button>
+    </div>
+</aside>
