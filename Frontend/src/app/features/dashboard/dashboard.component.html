@@ -1,26 +1,85 @@
 <div class="space-y-8 animate-fade-in p-6">
     <!-- Welcome Section -->
-    <mat-card
-        class="welcome-card p-10 border-0 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 overflow-hidden relative">
-        <div class="relative z-10">
-            <h1 class="text-4xl font-black text-slate-900 tracking-tight">
-                Good Morning, {{ auth.currentUser()?.fullName || 'User' }}! 👋
-            </h1>
-            <p class="text-slate-500 mt-3 text-lg font-medium opacity-80">
-                Here's a quick look at how your workforce is doing today.
-            </p>
-        </div>
-        <div class="flex items-center gap-4 relative z-10">
-            <div
-                class="px-6 py-3 bg-white/80 backdrop-blur rounded-2xl text-slate-700 font-bold text-sm shadow-sm border border-slate-100 flex items-center gap-3">
-                <mat-icon class="text-primary-600">calendar_today</mat-icon>
-                {{ today | date:'EEEE, MMM d, y' }}
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        <mat-card
+            class="xl:col-span-2 welcome-card p-10 border-0 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 overflow-hidden relative bg-white">
+            <div class="relative z-10">
+                <h1 class="text-4xl font-black text-slate-900 tracking-tight mb-2">
+                    Good Morning, {{ auth.currentUser()?.fullName || 'User' }}! 👋
+                </h1>
+                <p class="text-slate-500 text-lg font-medium opacity-80 leading-relaxed max-w-md">
+                    Welcome back to HRMS Professional. You have <span class="text-primary-600 font-bold">3 pending
+                        tasks</span> for today.
+                </p>
+                <div class="mt-8 flex items-center gap-6">
+                    <div class="flex -space-x-3">
+                        <div *ngFor="let i of [1,2,3,4]"
+                            class="w-10 h-10 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-400 overflow-hidden">
+                            <img [src]="'https://i.pravatar.cc/100?u=' + i" alt="User">
+                        </div>
+                        <div
+                            class="w-10 h-10 rounded-full border-2 border-white bg-primary-600 flex items-center justify-center text-[10px] font-bold text-white">
+                            +12
+                        </div>
+                    </div>
+                    <p class="text-sm font-semibold text-slate-400">Team is active now</p>
+                </div>
             </div>
-        </div>
-        <!-- Decorative background shapes -->
-        <div class="absolute -top-24 -right-24 w-80 h-80 bg-primary-50 rounded-full blur-3xl opacity-60"></div>
-        <div class="absolute -bottom-24 -left-24 w-60 h-60 bg-accent-50 rounded-full blur-3xl opacity-40"></div>
-    </mat-card>
+            <div class="flex flex-col items-end gap-4 relative z-10">
+                <div
+                    class="px-6 py-3 bg-slate-50 rounded-2xl text-slate-700 font-black text-xs shadow-sm shadow-slate-200/50 border border-slate-100 flex items-center gap-3 uppercase tracking-widest">
+                    <mat-icon class="text-primary-600 !w-5 !h-5 !text-[20px]">calendar_today</mat-icon>
+                    {{ today | date:'EEEE, MMM d, y' }}
+                </div>
+            </div>
+            <!-- Decorative background shapes -->
+            <div class="absolute -top-24 -right-24 w-80 h-80 bg-primary-50/50 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-24 -left-24 w-60 h-60 bg-accent-50/50 rounded-full blur-3xl"></div>
+        </mat-card>
+
+        <!-- Quick Actions Panel -->
+        <mat-card
+            class="p-8 border-0 shadow-sm bg-slate-900 text-white rounded-[2.5rem] relative overflow-hidden flex flex-col justify-between">
+            <div class="relative z-10">
+                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-primary-400 mb-6">Quick Actions</p>
+                <div class="grid grid-cols-2 gap-4">
+                    <button
+                        class="flex flex-col items-center justify-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-3xl transition-all border border-white/5 active:scale-95 group">
+                        <div
+                            class="w-12 h-12 rounded-2xl bg-primary-500/20 flex items-center justify-center text-primary-400 group-hover:scale-110 transition-transform">
+                            <mat-icon>login</mat-icon>
+                        </div>
+                        <span class="text-xs font-black uppercase tracking-widest">Check In</span>
+                    </button>
+                    <button routerLink="/leave"
+                        class="flex flex-col items-center justify-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-3xl transition-all border border-white/5 active:scale-95 group">
+                        <div
+                            class="w-12 h-12 rounded-2xl bg-amber-500/20 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
+                            <mat-icon>event_busy</mat-icon>
+                        </div>
+                        <span class="text-xs font-black uppercase tracking-widest">Leave</span>
+                    </button>
+                    <button routerLink="/payroll"
+                        class="flex flex-col items-center justify-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-3xl transition-all border border-white/5 active:scale-95 group">
+                        <div
+                            class="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                            <mat-icon>receipt_long</mat-icon>
+                        </div>
+                        <span class="text-xs font-black uppercase tracking-widest">Payslip</span>
+                    </button>
+                    <button
+                        class="flex flex-col items-center justify-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-3xl transition-all border border-white/5 active:scale-95 group">
+                        <div
+                            class="w-12 h-12 rounded-2xl bg-slate-500/20 flex items-center justify-center text-slate-400 group-hover:scale-110 transition-transform">
+                            <mat-icon>settings</mat-icon>
+                        </div>
+                        <span class="text-xs font-black uppercase tracking-widest">Settings</span>
+                    </button>
+                </div>
+            </div>
+            <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-primary-500/10 rounded-full blur-3xl"></div>
+        </mat-card>
+    </div>
 
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

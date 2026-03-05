@@ -29,14 +29,7 @@ import { forkJoin, catchError, of } from 'rxjs';
     ],
     templateUrl: './employee-form-dialog.component.html',
     styles: [`
-    .form-grid {
-      display: grid;
-      grid-template-cols: repeat(2, 1fr);
-      gap: 1.5rem;
-    }
-    @media (max-width: 600px) {
-      .form-grid { grid-template-cols: 1fr; }
-    }
+    /* Custom styles for dialog if needed */
   `]
 })
 export class EmployeeFormDialogComponent implements OnInit {

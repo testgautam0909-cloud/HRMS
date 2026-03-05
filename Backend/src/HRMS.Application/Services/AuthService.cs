@@ -104,7 +104,9 @@ public class AuthService : IAuthService
         user.LastLoginAt = DateTime.UtcNow;
         await _userManager.UpdateAsync(user);
         
-        return await GenerateTokenResponseAsync(user);
+        // Reload to get the latest EmployeeId (set by seeder after initial creation)
+        var freshUser = await _userManager.FindByIdAsync(user.Id);
+        return await GenerateTokenResponseAsync(freshUser ?? user);
     }
 
     public async Task<TokenResponseDto> RefreshTokenAsync(RefreshTokenDto dto)

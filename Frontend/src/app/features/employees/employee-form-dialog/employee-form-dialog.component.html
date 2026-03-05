@@ -4,35 +4,39 @@
 
 <mat-dialog-content class="!pt-8 !pb-6">
     <form [formGroup]="employeeForm" class="flex flex-col gap-6">
-        <div class="form-grid">
+        <div class="flex flex-col md:flex-row gap-4 mb-4">
             <!-- Personal Info -->
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" class="w-full">
                 <mat-label>First Name</mat-label>
                 <input matInput formControlName="firstName" placeholder="John">
                 <mat-error>Required</mat-error>
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Last Name</mat-label>
                 <input matInput formControlName="lastName" placeholder="Doe">
                 <mat-error>Required</mat-error>
             </mat-form-field>
+        </div>
 
-            <mat-form-field appearance="outline">
+        <div class="flex flex-col md:flex-row gap-4 mb-4">
+            <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Email Address</mat-label>
                 <mat-icon matPrefix class="mr-2 text-slate-400">mail_outline</mat-icon>
                 <input matInput formControlName="email" type="email" placeholder="john.doe@company.com">
                 <mat-error>Valid email required</mat-error>
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Phone Number</mat-label>
                 <mat-icon matPrefix class="mr-2 text-slate-400">phone</mat-icon>
                 <input matInput formControlName="phone" placeholder="+1 234 567 890">
                 <mat-error>Required</mat-error>
             </mat-form-field>
+        </div>
 
-            <mat-form-field appearance="outline">
+        <div class="flex flex-col md:flex-row gap-4 mb-4">
+            <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Date of Birth</mat-label>
                 <input matInput [matDatepicker]="dobPicker" formControlName="dateOfBirth">
                 <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
@@ -40,7 +44,7 @@
                 <mat-error>Required</mat-error>
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Gender</mat-label>
                 <mat-select formControlName="gender">
                     <mat-option *ngFor="let g of genders" [value]="g.id">{{ g.name }}</mat-option>
@@ -49,9 +53,9 @@
             </mat-form-field>
         </div>
 
-        <div class="form-grid">
+        <div class="flex flex-col md:flex-row gap-4 mb-4">
             <!-- Professional Info -->
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Department</mat-label>
                 <mat-icon matPrefix class="mr-2 text-slate-400">domain</mat-icon>
                 <mat-select formControlName="departmentId">
@@ -60,7 +64,7 @@
                 <mat-error>Required</mat-error>
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Designation</mat-label>
                 <mat-icon matPrefix class="mr-2 text-slate-400">badge</mat-icon>
                 <mat-select formControlName="designationId">
@@ -68,8 +72,10 @@
                 </mat-select>
                 <mat-error>Required</mat-error>
             </mat-form-field>
+        </div>
 
-            <mat-form-field appearance="outline">
+        <div class="flex flex-col md:flex-row gap-4 mb-4">
+            <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Employment Type</mat-label>
                 <mat-select formControlName="employmentType">
                     <mat-option *ngFor="let t of employmentTypes" [value]="t.id">{{ t.name }}</mat-option>

@@ -56,9 +56,20 @@ export class DashboardComponent implements OnInit {
   public barChartOptions: ChartConfiguration['options'] = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (context) => `Working Hours: ${context.raw}h`
+        }
+      }
+    },
     scales: {
-      y: { beginAtZero: true, grid: { display: false } },
+      y: {
+        beginAtZero: true,
+        grid: { display: false },
+        title: { display: true, text: 'Hours', font: { size: 10, weight: 'bold' } }
+      },
       x: { grid: { display: false } }
     }
   };
@@ -66,8 +77,10 @@ export class DashboardComponent implements OnInit {
   public barChartData: ChartConfiguration['data'] = {
     labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
     datasets: [{
-      data: [0, 0, 0, 0, 0, 0],
+      label: 'Hours Worked',
+      data: [8, 7.5, 9, 8.5, 8, 4],
       backgroundColor: '#6366f1',
+      hoverBackgroundColor: '#4f46e5',
       borderRadius: 10,
     }]
   };
@@ -75,14 +88,24 @@ export class DashboardComponent implements OnInit {
   public pieChartOptions: ChartConfiguration['options'] = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { position: 'bottom' } }
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: {
+          padding: 20,
+          usePointStyle: true,
+          font: { size: 11, weight: 'bold' }
+        }
+      }
+    }
   };
 
   public pieChartData: ChartConfiguration['data'] = {
     labels: ['Sick', 'Annual', 'Paternity', 'Other'],
     datasets: [{
-      data: [0, 0, 0, 0],
+      data: [15, 45, 10, 30],
       backgroundColor: ['#8b5cf6', '#0ea5e9', '#10b981', '#f59e0b'],
+      hoverOffset: 15,
       borderWidth: 0
     }]
   };

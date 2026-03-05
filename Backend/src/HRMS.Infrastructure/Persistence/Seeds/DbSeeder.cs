@@ -92,67 +92,42 @@ public static class DbSeeder
 
     private static async Task SeedAdminUserAsync(UserManager<ApplicationUser> userManager, AppDbContext context)
     {
-        var adminEmail = "admin@hrms.com";
-        var existingUser = await userManager.FindByEmailAsync(adminEmail);
+        var adminUser = await GetOrCreateUserAsync(userManager, "admin@hrms.com", "Admin", "Admin@123456");
+        var adminEmployee = await GetOrCreateEmployeeAsync(context, adminUser, "admin@hrms.com", "System", "Administrator", "EMP-2024-0001", "Director", "Engineering");
+        
+        var arjunUser = await GetOrCreateUserAsync(userManager, "arjun.patel@company.com", "Employee", "Arjun@123");
+        var arjunEmployee = await GetOrCreateEmployeeAsync(context, arjunUser, "arjun.patel@company.com", "Arjun", "Patel", "EMP-2024-0002", "Software Engineer", "Engineering");
+        
+        var poojaUser = await GetOrCreateUserAsync(userManager, "pooja.shah@company.com", "HR", "Pooja@123");
+        var poojaEmployee = await GetOrCreateEmployeeAsync(context, poojaUser, "pooja.shah@company.com", "Pooja", "Shah", "EMP-2024-0003", "HR Manager", "Human Resources");
 
-        if (existingUser != null) return;
+        await context.SaveChangesAsync();
 
-        var adminUser = new ApplicationUser
-        {
-            UserName = adminEmail,
-            Email = adminEmail,
-            EmailConfirmed = true,
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        };
+        // Update users with employee IDs
+        adminUser.EmployeeId = adminEmployee.Id;
+        arjunUser.EmployeeId = arjunEmployee.Id;
+        poojaUser.EmployeeId = poojaEmployee.Id;
+        await userManager.UpdateAsync(adminUser);
+        await userManager.UpdateAsync(arjunUser);
+        await userManager.UpdateAsync(poojaUser);
 
-        var result = await userManager.CreateAsync(adminUser, "Admin@123456");
-        if (result.Succeeded)
-        {
-            await userManager.AddToRoleAsync(adminUser, "Admin");
+        // Seed comprehensive data
+        await AllocateLeaveBalancesForEmployee(context, adminEmployee.Id, "system");
+        await AllocateLeaveBalancesForEmployee(context, arjunEmployee.Id, "system");
+        await AllocateLeaveBalancesForEmployee(context, poojaEmployee.Id, "system");
 
-            var department = await context.Departments.FirstAsync(d => d.Name == "Engineering");
-            var designation = await context.Designations.FirstAsync(d => d.Title == "Director");
-
-            var adminEmployee = new Employee
-            {
-                Id = Guid.NewGuid(),
-                EmployeeCode = "EMP-2024-0001",
-                FirstName = "System",
-                LastName = "Administrator",
-                Email = adminEmail,
-                Phone = "0000000000",
-                DateOfBirth = new DateTime(1990, 1, 1),
-                Gender = Domain.Enums.Gender.Male,
-                DepartmentId = department.Id,
-                DesignationId = designation.Id,
-                EmploymentType = Domain.Enums.EmploymentType.FullTime,
-                JoiningDate = new DateTime(2024, 1, 1),
-                IsActive = true,
-                UserId = adminUser.Id,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                CreatedBy = "system",
-                UpdatedBy = "system"
-            };
-
-            await context.Employees.AddAsync(adminEmployee);
-            await context.SaveChangesAsync();
-            
-            // Update user with employee ID after saving employee
-            adminUser.EmployeeId = adminEmployee.Id;
-            await userManager.UpdateAsync(adminUser);
-            
-            await CreateTestEmployeeAsync(userManager, context, "arjun.patel@company.com", "Arjun", "Patel", "EMP-2024-0002");
-        }
+        await SeedAttendanceAsync(context, new[] { adminEmployee, arjunEmployee, poojaEmployee });
+        await SeedLeavesAsync(context, arjunEmployee, poojaEmployee);
+        await SeedPayrollAsync(context, new[] { adminEmployee, arjunEmployee, poojaEmployee });
+        await SeedChatAsync(context, new[] { adminEmployee, arjunEmployee, poojaEmployee });
     }
 
-    private static async Task CreateTestEmployeeAsync(UserManager<ApplicationUser> userManager, AppDbContext context, string email, string firstName, string lastName, string employeeCode)
+    private static async Task<ApplicationUser> GetOrCreateUserAsync(UserManager<ApplicationUser> userManager, string email, string role, string password)
     {
-        var existingUser = await userManager.FindByEmailAsync(email);
-        if (existingUser != null) return;
-        
-        var user = new ApplicationUser
+        var user = await userManager.FindByEmailAsync(email);
+        if (user != null) return user;
+
+        user = new ApplicationUser
         {
             UserName = email,
             Email = email,
@@ -161,44 +136,216 @@ public static class DbSeeder
             CreatedAt = DateTime.UtcNow
         };
 
-        var result = await userManager.CreateAsync(user, "Password@123");
+        var result = await userManager.CreateAsync(user, password);
         if (result.Succeeded)
         {
-            await userManager.AddToRoleAsync(user, "Employee");
+            await userManager.AddToRoleAsync(user, role);
+        }
+        return user;
+    }
 
-            var department = await context.Departments.FirstAsync(d => d.Name == "Engineering");
-            var designation = await context.Designations.FirstAsync(d => d.Title == "Software Engineer");
+    private static async Task<Employee> GetOrCreateEmployeeAsync(AppDbContext context, ApplicationUser user, string email, string firstName, string lastName, string code, string designationTitle, string departmentName)
+    {
+        var employee = await context.Employees.FirstOrDefaultAsync(e => e.Email == email);
+        if (employee != null) return employee;
 
-            var employee = new Employee
+        var department = await context.Departments.FirstAsync(d => d.Name == departmentName);
+        var designation = await context.Designations.FirstAsync(d => d.Title == designationTitle);
+
+        employee = new Employee
+        {
+            Id = Guid.NewGuid(),
+            EmployeeCode = code,
+            FirstName = firstName,
+            LastName = lastName,
+            Email = email,
+            Phone = "1234567890",
+            DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            Gender = Domain.Enums.Gender.Male,
+            DepartmentId = department.Id,
+            DesignationId = designation.Id,
+            EmploymentType = Domain.Enums.EmploymentType.FullTime,
+            JoiningDate = new DateTime(2023, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            IsActive = true,
+            UserId = user.Id,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            CreatedBy = "system",
+            UpdatedBy = "system"
+        };
+
+        await context.Employees.AddAsync(employee);
+        return employee;
+    }
+
+    private static async Task SeedAttendanceAsync(AppDbContext context, Employee[] employees)
+    {
+        if (await context.AttendanceRecords.AnyAsync()) return;
+
+        var today = DateTime.UtcNow.Date;
+        var records = new List<AttendanceRecord>();
+
+        foreach (var emp in employees)
+        {
+            // Seed last 14 days
+            for (int i = 1; i <= 14; i++)
+            {
+                var date = today.AddDays(-i);
+                if (date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday) continue;
+
+                records.Add(new AttendanceRecord
+                {
+                    Id = Guid.NewGuid(),
+                    EmployeeId = emp.Id,
+                    Date = date,
+                    CheckInTime = date.AddHours(9).AddMinutes(new Random().Next(0, 30)),
+                    CheckOutTime = date.AddHours(18).AddMinutes(new Random().Next(0, 30)),
+                    WorkHours = 9,
+                    Status = Domain.Enums.AttendanceStatus.Present,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    CreatedBy = "system",
+                    UpdatedBy = "system"
+                });
+            }
+        }
+        await context.AttendanceRecords.AddRangeAsync(records);
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedLeavesAsync(AppDbContext context, Employee arjun, Employee pooja)
+    {
+        if (await context.LeaveApplications.AnyAsync()) return;
+
+        var casualLeave = await context.LeaveTypes.FirstAsync(l => l.Name == "Casual Leave");
+        var sickLeave = await context.LeaveTypes.FirstAsync(l => l.Name == "Sick Leave");
+
+        var leaves = new List<LeaveApplication>
+        {
+            new LeaveApplication
             {
                 Id = Guid.NewGuid(),
-                EmployeeCode = employeeCode,
-                FirstName = firstName,
-                LastName = lastName,
-                Email = email,
-                Phone = "1234567890",
-                DateOfBirth = new DateTime(1995, 5, 15),
-                Gender = Domain.Enums.Gender.Male,
-                DepartmentId = department.Id,
-                DesignationId = designation.Id,
-                EmploymentType = Domain.Enums.EmploymentType.FullTime,
-                JoiningDate = new DateTime(2024, 1, 1),
-                IsActive = true,
-                UserId = user.Id,
+                EmployeeId = arjun.Id,
+                LeaveTypeId = casualLeave.Id,
+                StartDate = DateTime.SpecifyKind(DateTime.UtcNow.Date.AddDays(10), DateTimeKind.Utc),
+                EndDate = DateTime.SpecifyKind(DateTime.UtcNow.Date.AddDays(12), DateTimeKind.Utc),
+                Duration = 3,
+                Reason = "Family vacation mapping",
+                Status = Domain.Enums.LeaveStatus.Submitted, // Pending
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedBy = arjun.FirstName,
+                UpdatedBy = arjun.FirstName
+            },
+            new LeaveApplication
+            {
+                Id = Guid.NewGuid(),
+                EmployeeId = pooja.Id,
+                LeaveTypeId = sickLeave.Id,
+                StartDate = DateTime.SpecifyKind(DateTime.UtcNow.Date.AddDays(-5), DateTimeKind.Utc),
+                EndDate = DateTime.SpecifyKind(DateTime.UtcNow.Date.AddDays(-4), DateTimeKind.Utc),
+                Duration = 2,
+                Reason = "Fever and cold",
+                Status = Domain.Enums.LeaveStatus.Approved,
+                ApprovedBy = "System Administrator",
+                ApprovedAt = DateTime.UtcNow.AddDays(-6),
+                CreatedAt = DateTime.UtcNow.AddDays(-7),
+                UpdatedAt = DateTime.UtcNow.AddDays(-6),
+                CreatedBy = pooja.FirstName,
+                UpdatedBy = "system"
+            }
+        };
+
+        await context.LeaveApplications.AddRangeAsync(leaves);
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedPayrollAsync(AppDbContext context, Employee[] employees)
+    {
+        if (await context.PayrollRecords.AnyAsync()) return;
+
+        var lastMonth = DateTime.UtcNow.AddMonths(-1);
+        var records = new List<PayrollRecord>();
+
+        foreach (var emp in employees)
+        {
+            records.Add(new PayrollRecord
+            {
+                Id = Guid.NewGuid(),
+                EmployeeId = emp.Id,
+                Month = lastMonth.Month,
+                Year = lastMonth.Year,
+                BasicSalary = 50000,
+                HouseRentAllowance = 20000,
+                TransportAllowance = 5000,
+                MedicalAllowance = 5000,
+                SpecialAllowance = 10000,
+                GrossSalary = 90000,
+                ProvidentFund = 6000,
+                ProfessionalTax = 200,
+                IncomeTax = 8000,
+                OtherDeductions = 0,
+                TotalDeductions = 14200,
+                NetSalary = 75800,
+                WorkingDays = 22,
+                PresentDays = 22,
+                AbsentDays = 0,
+                TotalWorkHours = 198,
+                Status = Domain.Enums.PayrollStatus.Paid,
+                PaidAt = new DateTime(lastMonth.Year, lastMonth.Month, 28, 0, 0, 0, DateTimeKind.Utc),
+                PaidBy = "System",
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 CreatedBy = "system",
                 UpdatedBy = "system"
-            };
-
-            await context.Employees.AddAsync(employee);
-            await context.SaveChangesAsync();
-            
-            user.EmployeeId = employee.Id;
-            await userManager.UpdateAsync(user);
-            
-            await AllocateLeaveBalancesForEmployee(context, employee.Id, "system");
+            });
         }
+        await context.PayrollRecords.AddRangeAsync(records);
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedChatAsync(AppDbContext context, Employee[] employees)
+    {
+        if (await context.ChatConversations.AnyAsync()) return;
+
+        var groupChat = new ChatConversation
+        {
+            Id = Guid.NewGuid(),
+            Name = "Engineering & HR Sync",
+            Type = Domain.Enums.ChatType.Group,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            CreatedBy = "system",
+            UpdatedBy = "system"
+        };
+        await context.ChatConversations.AddAsync(groupChat);
+
+        foreach (var emp in employees)
+        {
+            await context.ChatMembers.AddAsync(new ChatMember
+            {
+                Id = Guid.NewGuid(),
+                ConversationId = groupChat.Id,
+                EmployeeId = emp.Id,
+                IsAdmin = emp.Email == "admin@hrms.com",
+                JoinedAt = DateTime.UtcNow.AddDays(-30),
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedBy = "system",
+                UpdatedBy = "system"
+            });
+        }
+
+        var messages = new List<ChatMessage>
+        {
+            new ChatMessage { Id = Guid.NewGuid(), ConversationId = groupChat.Id, SenderEmployeeId = employees[0].Id, Type = Domain.Enums.MessageType.Text, Content = "Welcome to the new HRMS portal everyone!", SentAt = DateTime.UtcNow.AddHours(-24), CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, CreatedBy = "system", UpdatedBy = "system" },
+            new ChatMessage { Id = Guid.NewGuid(), ConversationId = groupChat.Id, SenderEmployeeId = employees[1].Id, Type = Domain.Enums.MessageType.Text, Content = "Looks great! The dashboard is very responsive.", SentAt = DateTime.UtcNow.AddHours(-23), CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, CreatedBy = "system", UpdatedBy = "system" },
+            new ChatMessage { Id = Guid.NewGuid(), ConversationId = groupChat.Id, SenderEmployeeId = employees[2].Id, Type = Domain.Enums.MessageType.Text, Content = "Please ensure all pending leave requests are submitted by EOD Friday.", SentAt = DateTime.UtcNow.AddHours(-22), CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow, CreatedBy = "system", UpdatedBy = "system" }
+        };
+
+        await context.ChatMessages.AddRangeAsync(messages);
+        await context.SaveChangesAsync();
     }
     
     private static async Task AllocateLeaveBalancesForEmployee(AppDbContext context, Guid employeeId, string performedBy)

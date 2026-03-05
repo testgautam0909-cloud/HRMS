@@ -2,6 +2,7 @@ import { Injectable, inject, signal, effect } from '@angular/core';
 import * as signalR from '@microsoft/signalr';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
+import { ApiService } from './api.service';
 
 export interface ChatMessage {
     id: string;
@@ -19,9 +20,11 @@ export class ChatService {
     private auth = inject(AuthService);
     private hubConnection?: signalR.HubConnection;
 
-    messages = signal<ChatMessage[]>([]);
+    messages = signal<any[]>([]);
     onlineUsers = signal<string[]>([]);
     isConnected = signal(false);
+
+    private api = inject(ApiService);
 
     constructor() {
         effect(() => {
@@ -39,7 +42,7 @@ export class ChatService {
         if (!token) return;
 
         this.hubConnection = new signalR.HubConnectionBuilder()
-            .withUrl(environment.hubUrl, {
+            .withUrl(`${environment.hubUrl}`, {
                 accessTokenFactory: () => token
             })
             .withAutomaticReconnect()
@@ -58,8 +61,11 @@ export class ChatService {
     }
 
     private registerHandlers() {
-        this.hubConnection?.on('ReceiveMessage', (message: ChatMessage) => {
-            this.messages.update(prev => [...prev, message]);
+        this.hubConnection?.on('ReceiveMessage', (message: any) => {
+            this.messages.update(prev => [...prev, {
+                ...message,
+                timestamp: new Date(message.sentAt)
+            }]);
         });
 
         this.hubConnection?.on('UserOnline', (userId: string) => {
@@ -71,9 +77,22 @@ export class ChatService {
         });
     }
 
+    getMessages(conversationId: string) {
+        this.api.get<any>(`chat/conversations/${conversationId}/messages`, { pageSize: 50 })
+            .subscribe(res => {
+                const msgs = (res.data?.data || res.data || []).map((m: any) => ({
+                    ...m,
+                    timestamp: new Date(m.sentAt)
+                }));
+                // Sort by date ascending for the chat view
+                this.messages.set(msgs.sort((a: any, b: any) => a.timestamp.getTime() - b.timestamp.getTime()));
+            });
+    }
+
     async sendMessage(conversationId: string, content: string) {
         if (this.hubConnection?.state === signalR.HubConnectionState.Connected) {
-            await this.hubConnection.invoke('SendMessage', conversationId, content);
+            const dto = { conversationId, content, type: 1 };
+            await this.hubConnection.invoke('SendMessage', dto);
         }
     }
 

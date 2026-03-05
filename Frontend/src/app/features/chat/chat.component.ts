@@ -32,7 +32,7 @@ export class ChatComponent implements OnInit, AfterViewChecked {
   private auth = inject(AuthService);
   private api = inject(ApiService);
 
-  currentUserId = this.auth.currentUser()?.id;
+  currentUserId = this.auth.currentUser()?.employeeId;
   conversations = signal<any[]>([]);
   selectedConv = signal<any>(null);
   newMessage = '';
@@ -54,6 +54,7 @@ export class ChatComponent implements OnInit, AfterViewChecked {
   selectConversation(conv: any) {
     this.selectedConv.set(conv);
     this.chatService.joinConversation(conv.id);
+    this.chatService.getMessages(conv.id);
   }
 
   async sendMessage() {
