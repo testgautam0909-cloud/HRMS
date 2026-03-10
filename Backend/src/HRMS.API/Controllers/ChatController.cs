@@ -14,7 +14,24 @@ namespace HRMS.API.Controllers;
 public class ChatController : ControllerBase
 {
     private readonly IChatService _service;
-    public ChatController(IChatService service) => _service = service;
+    private readonly ICloudinaryService _cloudinary;
+
+    public ChatController(IChatService service, ICloudinaryService cloudinary)
+    {
+        _service = service;
+        _cloudinary = cloudinary;
+    }
+
+    [HttpPost("upload")]
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> Upload(IFormFile file)
+    {
+        if (file == null || file.Length == 0) return BadRequest("File is empty.");
+        if (file.Length > 5 * 1024 * 1024) return BadRequest("File size exceeds 5MB limit.");
+
+        var (publicId, url) = await _cloudinary.UploadAsync(file.OpenReadStream(), file.FileName, "chat_attachments");
+        return Ok(ApiResponse<object>.Ok(new { url, fileName = file.FileName }, "File uploaded successfully."));
+    }
 
     private Guid? GetEmployeeIdOptional()
     {

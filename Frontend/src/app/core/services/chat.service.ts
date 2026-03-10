@@ -6,11 +6,12 @@ import { ApiService } from './api.service';
 
 export interface ChatMessage {
     id: string;
-    senderId: string;
+    senderEmployeeId: string;
     senderName: string;
     content: string;
     timestamp: Date;
     conversationId: string;
+    isRetracted?: boolean;
 }
 
 @Injectable({
@@ -75,6 +76,11 @@ export class ChatService {
         this.hubConnection?.on('UserOffline', (userId: string) => {
             this.onlineUsers.update(prev => prev.filter(id => id !== userId));
         });
+
+        this.hubConnection?.on('MessagesRead', (data: { employeeId: string, conversationId: string }) => {
+            // Can be used to update UI for read receipts if needed
+            console.log('Messages read by', data.employeeId, 'in', data.conversationId);
+        });
     }
 
     getMessages(conversationId: string) {
@@ -89,9 +95,15 @@ export class ChatService {
             });
     }
 
-    async sendMessage(conversationId: string, content: string) {
+    async sendMessage(conversationId: string, content: string, fileUrl?: string, fileName?: string) {
         if (this.hubConnection?.state === signalR.HubConnectionState.Connected) {
-            const dto = { conversationId, content, type: 1 };
+            const dto = {
+                conversationId,
+                content,
+                fileUrl,
+                fileName,
+                type: fileUrl ? 2 : 1
+            };
             await this.hubConnection.invoke('SendMessage', dto);
         }
     }
@@ -100,5 +112,19 @@ export class ChatService {
         if (this.hubConnection?.state === signalR.HubConnectionState.Connected) {
             await this.hubConnection.invoke('JoinConversation', conversationId);
         }
+    }
+
+    async markAsRead(conversationId: string) {
+        if (this.hubConnection?.state === signalR.HubConnectionState.Connected) {
+            await this.hubConnection.invoke('MarkAsRead', conversationId);
+        }
+    }
+
+    retractMessage(messageId: string) {
+        return this.api.put<any>(`chat/messages/${messageId}/retract`, {});
+    }
+
+    addMember(conversationId: string, employeeId: string) {
+        return this.api.post<any>(`chat/conversations/${conversationId}/members/${employeeId}`, {});
     }
 }

@@ -13,4 +13,5 @@ public interface IShiftService
     Task<IEnumerable<ShiftAssignmentDto>> GetShiftAssignmentsByEmployeeAsync(Guid employeeId);
     Task<ShiftAssignmentDto> AssignShiftToEmployeeAsync(CreateShiftAssignmentDto dto, string performedBy);
     Task<EmployeeShiftScheduleDto> GetEmployeeShiftScheduleAsync(Guid employeeId);
+    Task DeleteShiftAssignmentAsync(Guid id, string performedBy);
 }

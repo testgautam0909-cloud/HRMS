@@ -1,115 +1,355 @@
 <div
     class="h-[calc(100vh-12rem)] flex bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden animate-fade-in mx-auto">
-    <!-- Sidebar: Conversations -->
-    <div class="w-80 border-r border-slate-50 flex flex-col bg-slate-50/20">
-        <div class="p-8">
-            <h2 class="text-2xl font-black text-slate-900 mb-6 tracking-tight">Messages</h2>
+    <!-- Sidebar: Conversations & Directory -->
+    <div class="w-80 lg:w-96 border-r border-slate-50 flex flex-col bg-slate-50/30">
+        <div class="p-8 pb-4">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-black text-slate-900 tracking-tight">Messages</h2>
+                <div class="flex items-center gap-2">
+                    <button mat-icon-button matTooltip="New Group"
+                        class="bg-slate-100 hover:bg-slate-200 text-slate-500 w-8 h-8 flex items-center justify-center rounded-xl transition-colors"
+                        (click)="openGroupCreate()">
+                        <mat-icon style="font-size: 18px; width: 18px; height: 18px;">group_add</mat-icon>
+                    </button>
+                    <button mat-icon-button matTooltip="New Chat"
+                        class="bg-primary-50 hover:bg-primary-100 text-primary-600 w-8 h-8 flex items-center justify-center rounded-xl transition-colors"
+                        (click)="onTabChange('directory')">
+                        <mat-icon style="font-size: 18px; width: 18px; height: 18px;">edit_square</mat-icon>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex p-1 bg-slate-100 rounded-xl mb-4">
+                <button
+                    [class]="'flex-1 py-2 text-xs font-black rounded-lg transition-all ' + (activeTab() === 'chats' ? 'bg-white shadow-sm text-primary-600' : 'text-slate-400 hover:text-slate-600')"
+                    (click)="onTabChange('chats')">CHATS</button>
+                <button
+                    [class]="'flex-1 py-2 text-xs font-black rounded-lg transition-all ' + (activeTab() === 'directory' ? 'bg-white shadow-sm text-primary-600' : 'text-slate-400 hover:text-slate-600')"
+                    (click)="onTabChange('directory')">DIRECTORY</button>
+            </div>
+
             <div class="relative group">
                 <mat-icon
-                    class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary-600 transition-colors">search</mat-icon>
-                <input type="text" placeholder="Search chats..."
-                    class="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-medium outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500/40 transition-all placeholder:text-slate-400">
+                    class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary-500 transition-colors">search</mat-icon>
+                <input type="text" [(ngModel)]="searchQuery"
+                    [placeholder]="activeTab() === 'chats' ? 'Search messages...' : 'Search people...'"
+                    class="w-full pl-12 pr-4 py-3 bg-white border border-slate-100 rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-primary-500/5 focus:border-primary-500/20 transition-all placeholder:text-slate-300">
             </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto px-4 pb-6 space-y-1 custom-scrollbar">
-            <div *ngFor="let conv of conversations()" (click)="selectConversation(conv)"
-                [class]="'p-4 rounded-3xl flex items-center gap-4 cursor-pointer transition-all ' + (selectedConv()?.id === conv.id ? 'bg-white shadow-xl shadow-slate-200/50 border border-slate-100' : 'hover:bg-white/60 border border-transparent')">
-                <div class="relative">
-                    <div
-                        class="w-14 h-14 bg-primary-100 rounded-2xl flex items-center justify-center text-primary-600 font-black text-lg">
-                        {{ conv.name.charAt(0) }}
+        <div class="flex-1 overflow-y-auto px-4 pb-6 mt-2 space-y-1 custom-scrollbar">
+            <!-- Chats List -->
+            <ng-container *ngIf="activeTab() === 'chats'">
+                <div *ngFor="let conv of filteredConversations()" (click)="selectConversation(conv)"
+                    [class]="'p-4 rounded-[1.75rem] flex items-center gap-4 cursor-pointer transition-all ' + (selectedConv()?.id === conv.id ? 'bg-white shadow-lg shadow-slate-200/50 border border-slate-100' : 'hover:bg-white/60 border border-transparent')">
+                    <div class="relative flex-shrink-0">
+                        <div
+                            [class]="'w-14 h-14 rounded-2xl flex items-center justify-center font-black text-lg ' + (conv.type === 'Group' ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-400')">
+                            <mat-icon *ngIf="conv.type === 'Group'" style="font-size: 24px;">groups</mat-icon>
+                            <span *ngIf="conv.type !== 'Group'">{{ getConversationInitial(conv) }}</span>
+                        </div>
+                        <div *ngIf="conv.type !== 'Group'"
+                            class="absolute -right-0.5 -bottom-0.5 w-4 h-4 border-4 border-white rounded-full shadow-sm"
+                            [class.bg-green-500]="true"></div>
                     </div>
-                    <div *ngIf="conv.isOnline"
-                        class="absolute -right-1 -bottom-1 w-4 h-4 bg-green-500 border-4 border-white rounded-full shadow-sm">
+                    <div class="flex-1 min-w-0 pr-4">
+                        <div class="flex items-center justify-between mb-0.5">
+                            <h4 class="text-sm font-black text-slate-800 truncate leading-none">
+                                {{ getConversationName(conv) }}
+                            </h4>
+                            <span
+                                class="text-[10px] font-black text-slate-400 whitespace-nowrap uppercase tracking-tighter">
+                                {{ (conv.lastMessage?.sentAt || conv.createdAt) | date:'shortTime' }}
+                            </span>
+                        </div>
+                        <p class="text-[11px] text-slate-400 truncate font-bold leading-none">
+                            {{ conv.lastMessage?.content || 'No messages yet' }}
+                        </p>
                     </div>
                 </div>
-                <div class="flex-1 min-w-0">
-                    <div class="flex justify-between items-baseline mb-1">
-                        <h4 class="font-black text-slate-900 truncate tracking-tight">{{ conv.name }}</h4>
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{{
-                            conv.lastMessageTime | date:'shortTime' }}</span>
-                    </div>
-                    <p class="text-[11px] text-slate-500 truncate font-semibold leading-none">{{ conv.lastMessage }}</p>
-                </div>
-            </div>
 
-            <app-empty-state *ngIf="conversations().length === 0" icon="forum" title="No Messages"
-                description="Your workspace conversations will appear here. Start a new chat to begin.">
-            </app-empty-state>
+                <app-empty-state *ngIf="filteredConversations().length === 0" icon="forum"
+                    [title]="searchQuery() ? 'No matches found' : 'No Messages'"
+                    [description]="searchQuery() ? 'Try a different search term.' : 'Start a new chat from the Directory tab.'">
+                </app-empty-state>
+            </ng-container>
+
+            <!-- Directory List -->
+            <ng-container *ngIf="activeTab() === 'directory'">
+                <!-- Group Creation Banner -->
+                <div *ngIf="showGroupCreate()"
+                    class="mb-4 p-5 bg-indigo-50 rounded-2xl border border-indigo-100 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-black text-indigo-700 uppercase tracking-widest">New Group</h4>
+                        <button mat-icon-button (click)="closeGroupCreate()"
+                            class="w-6 h-6 text-indigo-400 hover:text-indigo-700">
+                            <mat-icon style="font-size: 16px; width: 16px; height: 16px;">close</mat-icon>
+                        </button>
+                    </div>
+                    <input type="text" [(ngModel)]="groupName" placeholder="Group name..."
+                        class="w-full px-4 py-2.5 bg-white border border-indigo-100 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/10 placeholder:text-slate-300">
+                    <input type="text" [(ngModel)]="groupDescription" placeholder="Description (optional)"
+                        class="w-full px-4 py-2.5 bg-white border border-indigo-100 rounded-xl text-sm font-medium outline-none focus:ring-2 focus:ring-indigo-500/10 placeholder:text-slate-300">
+                    <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">
+                        {{ selectedMembers().size }} member{{ selectedMembers().size !== 1 ? 's' : '' }} selected — tap
+                        people below
+                    </p>
+                    <button mat-flat-button color="primary" (click)="createGroup()"
+                        [disabled]="!groupName.trim() || selectedMembers().size === 0"
+                        class="w-full !h-11 !rounded-xl !font-black !text-sm !shadow-lg !shadow-primary-600/20">
+                        Create Group
+                    </button>
+                </div>
+
+                <div *ngFor="let emp of filteredEmployees()"
+                    (click)="showGroupCreate() ? toggleMember(emp.id) : startDm(emp.id)"
+                    [class]="'p-4 rounded-[1.75rem] flex items-center gap-4 cursor-pointer transition-all border group ' + 
+                    (showGroupCreate() && isMemberSelected(emp.id) ? 'bg-indigo-50 border-indigo-200 shadow-sm' : 'hover:bg-white/60 border-transparent')">
+                    <div class="relative flex-shrink-0">
+                        <div
+                            [class]="'w-14 h-14 border rounded-2xl flex items-center justify-center font-black text-lg transition-colors ' + 
+                            (showGroupCreate() && isMemberSelected(emp.id) ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-slate-50 text-slate-300 border-slate-50 group-hover:bg-primary-50 group-hover:text-primary-600')">
+                            <mat-icon *ngIf="showGroupCreate() && isMemberSelected(emp.id)"
+                                style="font-size: 24px;">check</mat-icon>
+                            <span *ngIf="!showGroupCreate() || !isMemberSelected(emp.id)">{{ emp.fullName?.charAt(0) ||
+                                '?' }}</span>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-black text-slate-900 truncate tracking-tight text-sm mb-1">{{ emp.fullName }}
+                        </h4>
+                        <p class="text-[11px] text-slate-400 truncate font-bold leading-none">{{ emp.designation }}
+                            <span *ngIf="emp.department"> • {{ emp.department }}</span>
+                        </p>
+                    </div>
+                    <mat-icon *ngIf="!showGroupCreate()"
+                        class="text-slate-200 group-hover:text-primary-500 transition-all opacity-0 group-hover:opacity-100 scale-90 translate-x-2 group-hover:translate-x-0">chat</mat-icon>
+                </div>
+
+                <app-empty-state *ngIf="filteredEmployees().length === 0" icon="badge"
+                    [title]="searchQuery() ? 'No results' : 'No Employees'"
+                    [description]="searchQuery() ? 'Try searching by name or role.' : 'Employee directory is unavailable.'">
+                </app-empty-state>
+            </ng-container>
         </div>
     </div>
 
     <!-- Main Chat Area -->
     <div class="flex-1 flex flex-col bg-white">
         <!-- Chat Header -->
-        <div *ngIf="selectedConv()" class="p-8 border-b border-slate-50 flex items-center justify-between">
-            <div class="flex items-center gap-4 text-left">
-                <div
-                    class="w-14 h-14 bg-slate-900 rounded-2xl flex items-center justify-center text-white font-black text-lg shadow-lg">
-                    {{ selectedConv()?.name.charAt(0) }}
-                </div>
-                <div>
-                    <h3 class="text-xl font-black text-slate-900 leading-none mb-1 tracking-tight">{{
-                        selectedConv()?.name }}</h3>
-                    <p
-                        class="text-[10px] font-black uppercase tracking-[0.2em] text-green-500 flex items-center gap-1.5 px-0.5">
-                        <span
-                            class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shadow-sm shadow-green-500/50"></span>
-                        Active Now
-                    </p>
-                </div>
-            </div>
-            <div class="flex items-center gap-3">
-                <button mat-icon-button
-                    class="text-slate-300 hover:text-primary-600 transition-all"><mat-icon>search</mat-icon></button>
-                <button mat-icon-button
-                    class="text-slate-300 hover:text-primary-600 transition-all"><mat-icon>more_vert</mat-icon></button>
-            </div>
-        </div>
-
-        <!-- Messages Area -->
-        <div #scrollContainer class="flex-1 overflow-y-auto p-10 space-y-8 bg-slate-50/10 custom-scrollbar">
-            <div *ngFor="let msg of chatService.messages()"
-                [class]="'flex ' + (msg.senderEmployeeId === currentUserId ? 'justify-end' : 'justify-start')">
-                <div [class]="'max-w-[70%] group ' + (msg.senderEmployeeId === currentUserId ? 'order-2' : 'order-1')">
+        <div *ngIf="selectedConv()" class="px-10 py-6 border-b border-slate-50 flex items-center justify-between">
+            <div class="flex items-center gap-5">
+                <div class="relative">
                     <div
-                        [class]="'px-6 py-4 rounded-[2rem] shadow-sm ' + (msg.senderEmployeeId === currentUserId ? 'bg-primary-600 text-white rounded-tr-none shadow-primary-200' : 'bg-white border border-slate-100 text-slate-800 rounded-tl-none')">
-                        <p class="text-sm font-bold leading-relaxed">{{ msg.content }}</p>
+                        [class]="'w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl shadow-xl ' + (selectedConv()?.type === 'Group' ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-white')">
+                        <mat-icon *ngIf="selectedConv()?.type === 'Group'" style="font-size: 28px;">groups</mat-icon>
+                        <span *ngIf="selectedConv()?.type !== 'Group'">{{ getConversationInitial(selectedConv())
+                            }}</span>
                     </div>
-                    <p
-                        [class]="'text-[10px] font-black text-slate-400 mt-2 uppercase tracking-[0.15em] ' + (msg.senderEmployeeId === currentUserId ? 'text-right pr-2' : 'text-left pl-2')">
-                        {{ msg.timestamp | date:'shortTime' }}
-                    </p>
                 </div>
-            </div>
+                <div class="flex flex-col">
+                    <h3 class="text-xl font-black text-slate-900 leading-none mb-1.5 tracking-tight">{{
+                        getConversationName(selectedConv()) }}</h3>
+                    <div class="flex items-center gap-2">
+                        <span *ngIf="selectedConv()?.type === 'Group'"
+                            class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                            {{ selectedConv()?.members?.length || 0 }} members
+                        </span>
+                        <ng-container *ngIf="selectedConv()?.type !== 'Group'">
+                            <span
+                                class="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-sm shadow-green-500/50"></span>
+                            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-green-500">Active Now</p>
+                        </ng-container>
+                    </div>
+                </div>
 
-            <div *ngIf="!selectedConv()" class="h-full flex flex-col items-center justify-center text-center p-12">
-                <div
-                    class="w-24 h-24 bg-slate-50 rounded-[3rem] flex items-center justify-center text-primary-200 mb-8 shadow-inner">
-                    <mat-icon style="font-size: 48px; width: 48px; height: 48px;">forum</mat-icon>
+                <!-- Search Input in Header -->
+                <div *ngIf="showSearch()" class="flex-1 max-w-md mx-6 animate-fade-in relative">
+                    <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</mat-icon>
+                    <input type="text" [(ngModel)]="conversationSearchQuery" placeholder="Search in this chat..."
+                        class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-100 rounded-full text-sm font-bold outline-none focus:ring-2 focus:ring-primary-500/10 transition-all placeholder:text-slate-300">
+                    <button *ngIf="conversationSearchQuery()" mat-icon-button (click)="conversationSearchQuery.set('')"
+                        class="absolute right-1 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-500 !w-6 !h-6 flex items-center justify-center">
+                        <mat-icon style="font-size: 14px; width:14px; height: 14px;">close</mat-icon>
+                    </button>
                 </div>
-                <h3 class="text-2xl font-black text-slate-900 tracking-tight">Your Inbox</h3>
-                <p class="text-slate-400 font-bold max-w-xs mt-3 leading-relaxed uppercase tracking-tighter text-xs">
-                    Select a conversation from the sidebar to start messaging your team.</p>
+                <div *ngIf="!showSearch()" class="flex-1"></div>
+
+                <div class="flex items-center gap-3">
+                    <button mat-icon-button (click)="toggleSearch()" [color]="showSearch() ? 'primary' : ''"
+                        class="text-slate-400 hover:text-primary-600 transition-colors"
+                        matTooltip="Search in conversation">
+                        <mat-icon>search</mat-icon>
+                    </button>
+                    <button mat-icon-button *ngIf="selectedConv()?.type === 'Group'" (click)="toggleAddMember()"
+                        [color]="showAddMember() ? 'primary' : ''"
+                        class="text-slate-400 hover:text-primary-600 transition-colors" matTooltip="Add Member">
+                        <mat-icon>person_add</mat-icon>
+                    </button>
+                    <button mat-icon-button (click)="toggleMembers()" [color]="showMembers() ? 'primary' : ''"
+                        class="text-slate-400 hover:text-primary-600 transition-colors" matTooltip="View Members">
+                        <mat-icon>people</mat-icon>
+                    </button>
+                </div>
             </div>
         </div>
 
+        <!-- Chat Messages Area -->
+        <div class="flex-1 flex overflow-hidden relative">
+            <div #scrollContainer class="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
+                <div *ngFor="let msg of filteredMessages()" class="flex flex-col animate-slide-in"
+                    [class.items-end]="msg.senderEmployeeId === currentUserId"
+                    [class.items-start]="msg.senderEmployeeId !== currentUserId">
+
+                    <!-- Sender Name for groups -->
+                    <span *ngIf="msg.senderEmployeeId !== currentUserId && selectedConv()?.type === 'Group'"
+                        class="text-[10px] font-black text-slate-400 mb-1 ml-2 uppercase tracking-widest">
+                        {{ msg.senderName }}
+                    </span>
+
+                    <div class="flex items-end gap-2 group max-w-[80%]"
+                        [class.flex-row-reverse]="msg.senderEmployeeId === currentUserId">
+
+                        <!-- Retract button for own messages -->
+                        <button *ngIf="msg.senderEmployeeId === currentUserId && !msg.isRetracted" mat-icon-button
+                            (click)="retractMessage(msg.id)" matTooltip="Delete Message"
+                            class="opacity-0 group-hover:opacity-100 transition-opacity !w-8 !h-8 flex items-center justify-center text-red-500 hover:bg-red-50 rounded-full shrink-0">
+                            <mat-icon
+                                style="font-size: 16px; width: 16px; height: 16px; line-height: 16px; display:flex; align-items: center; justify-content: center;">delete_outline</mat-icon>
+                        </button>
+
+                        <div class="message-bubble px-4 py-3 shadow-sm relative transition-all"
+                            [ngClass]="msg.senderEmployeeId === currentUserId ?
+                                            (msg.isRetracted ? 'bg-slate-50 border border-slate-100 text-slate-400 rounded-[20px] rounded-br-[4px]' : '!bg-primary-600 !text-white rounded-[20px] rounded-br-[4px]') :
+                                            (msg.isRetracted ? 'bg-slate-50 border border-slate-100 text-slate-400 rounded-[20px] rounded-bl-[4px]' : 'bg-slate-100 text-slate-800 rounded-[20px] rounded-bl-[4px]')">
+
+                            <!-- Retracted Indicator -->
+                            <div *ngIf="msg.isRetracted" class="flex items-center gap-2 italic text-sm">
+                                <mat-icon style="font-size: 16px; width: 16px; height: 16px;">block</mat-icon>
+                                <span>This message was deleted</span>
+                            </div>
+
+                            <!-- Attachment display -->
+                            <div *ngIf="msg.fileUrl && !msg.isRetracted"
+                                class="mb-2 p-2 bg-black/10 rounded-lg flex items-center gap-3 border border-white/10">
+                                <mat-icon class="text-2xl">insert_drive_file</mat-icon>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-xs font-bold truncate">{{ msg.fileName || 'Attachment' }}</p>
+                                </div>
+                                <a [href]="msg.fileUrl" target="_blank"
+                                    class="text-white/80 hover:text-white transition-colors" matTooltip="Download">
+                                    <mat-icon>download</mat-icon>
+                                </a>
+                            </div>
+
+                            <p *ngIf="!msg.isRetracted"
+                                class="text-[14px] leading-relaxed font-semibold break-words whitespace-pre-wrap">{{
+                                msg.content }}</p>
+
+                            <span class="text-[9px] mt-1 block opacity-60 font-black uppercase tracking-tighter"
+                                [class.text-right]="msg.senderEmployeeId === currentUserId">
+                                {{ msg.timestamp | date:'shortTime' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <app-empty-state *ngIf="filteredMessages().length === 0 && conversationSearchQuery()" icon="search_off"
+                    title="No messages found" description="Try a different search term in this chat.">
+                </app-empty-state>
+            </div>
+
+            <!-- Add Member Overlay Panel -->
+            <div *ngIf="showAddMember() && selectedConv()?.type === 'Group'"
+                class="w-72 border-l border-slate-100 bg-white slide-in-right z-20 flex flex-col shadow-2xl absolute right-0 top-0 bottom-0">
+                <div class="p-4 border-b border-slate-50 flex items-center justify-between bg-indigo-50/50">
+                    <h5 class="text-xs font-black text-indigo-900 uppercase tracking-widest">Add Member</h5>
+                    <button mat-icon-button (click)="toggleAddMember()"
+                        class="!w-6 !h-6 text-slate-400 flex items-center justify-center">
+                        <mat-icon style="font-size: 16px; width: 16px; height: 16px;">close</mat-icon>
+                    </button>
+                </div>
+                <div class="p-3 border-b border-slate-50">
+                    <input type="text" [(ngModel)]="searchQuery" placeholder="Search to add..."
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-100 rounded-lg text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500/20">
+                </div>
+                <div class="flex-1 overflow-y-auto p-2 space-y-1">
+                    <div *ngFor="let emp of availableEmployeesToAdd"
+                        class="flex items-center gap-3 p-2 rounded-xl border border-transparent hover:bg-slate-50 transition-all group">
+                        <div
+                            class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 text-[10px] font-black border-2 border-white shadow-sm">
+                            {{ emp.fullName ? emp.fullName.charAt(0).toUpperCase() : '?' }}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-black text-slate-800 truncate mb-0.5">{{ emp.fullName }}</p>
+                            <p class="text-[9px] text-slate-400 truncate">{{ emp.designation }}</p>
+                        </div>
+                        <button mat-icon-button (click)="addMemberToGroup(emp.id)"
+                            class="opacity-0 group-hover:opacity-100 transition-opacity !w-6 !h-6 flex items-center justify-center text-indigo-600 hover:bg-indigo-50">
+                            <mat-icon style="font-size: 16px; width: 16px; height: 16px;">add</mat-icon>
+                        </button>
+                    </div>
+                    <div *ngIf="availableEmployeesToAdd.length === 0" class="p-4 text-center">
+                        <p class="text-xs text-slate-400 font-bold">No employees found to add.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Members Overlay Panel -->
+            <div *ngIf="showMembers()"
+                class="w-72 border-l border-slate-100 bg-white slide-in-right z-20 flex flex-col shadow-2xl absolute right-0 top-0 bottom-0">
+                <div class="p-4 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
+                    <h5 class="text-xs font-black text-slate-900 uppercase tracking-widest">Group Members</h5>
+                    <div class="flex items-center gap-2">
+                        <span class="bg-primary-100 text-primary-700 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                            {{ selectedConv()?.members?.length || 0 }}
+                        </span>
+                        <button mat-icon-button (click)="toggleMembers()"
+                            class="!w-6 !h-6 text-slate-400 flex items-center justify-center">
+                            <mat-icon style="font-size: 16px; width: 16px; height: 16px;">close</mat-icon>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex-1 overflow-y-auto p-2 space-y-1">
+                    <div *ngFor="let member of selectedConv()?.members"
+                        class="flex items-center gap-3 p-2 rounded-xl border border-transparent hover:bg-slate-50 transition-all group">
+                        <div
+                            class="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-white text-[10px] font-black border-2 border-white shadow-sm transition-transform group-hover:scale-105">
+                            {{ member.employeeName ? member.employeeName.charAt(0).toUpperCase() : '?' }}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-black text-slate-800 truncate mb-0.5">{{ member.employeeName }}</p>
+                            <div class="flex items-center gap-1.5" *ngIf="isUserOnline(member.employeeId)">
+                                <div
+                                    class="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse">
+                                </div>
+                                <span
+                                    class="text-[8px] font-black text-green-600 uppercase tracking-tighter">Online</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- Input Area -->
         <div *ngIf="selectedConv()" class="p-8 border-t border-slate-50 bg-white">
-            <div
-                class="flex items-center gap-4 bg-slate-50 p-3 rounded-3xl border border-slate-100 focus-within:border-primary-500/20 focus-within:bg-white focus-within:ring-[6px] focus-within:ring-primary-500/5 transition-all duration-300">
-                <button mat-icon-button class="text-slate-300 hover:text-primary-600 transition-all flex-shrink-0">
-                    <mat-icon>add_circle_outline</mat-icon>
-                </button>
-                <input type="text" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()"
-                    placeholder="Type your message here..."
-                    class="flex-1 bg-transparent border-none outline-none px-2 py-3 font-bold text-slate-900 placeholder:text-slate-300 text-sm">
-                <button mat-flat-button color="primary" (click)="sendMessage()" [disabled]="!newMessage.trim()"
-                    class="!h-14 !w-14 !min-w-0 !p-0 !rounded-2xl !shadow-xl !shadow-primary-600/20 flex items-center justify-center transition-transform active:scale-95">
-                    <mat-icon class="text-white scale-125">send</mat-icon>
-                </button>
+            <div class="p-6 pt-2">
+                <div
+                    class="bg-white border-2 border-slate-100 rounded-3xl p-1 flex items-center shadow-lg focus-within:border-primary-500/30 transition-all">
+                    <button mat-icon-button class="text-slate-400 hover:text-primary-600 transition-colors !w-12 !h-12"
+                        (click)="fileInput.click()">
+                        <mat-icon>attach_file</mat-icon>
+                    </button>
+                    <input #fileInput type="file" (change)="onFileSelected($event)" style="display: none" />
+                    <input type="text" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()"
+                        placeholder="Type a message..."
+                        class="flex-1 bg-transparent border-none outline-none px-2 py-3 font-bold text-slate-800 placeholder:text-slate-300 text-sm">
+                    <button mat-flat-button color="primary" (click)="sendMessage()" [disabled]="!newMessage.trim()"
+                        class="!h-10 !w-10 !min-w-0 !p-0 flex items-center justify-center transition-transform active:scale-90 mr-1">
+                        <mat-icon class="text-primary-600 scale-110">send</mat-icon>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>

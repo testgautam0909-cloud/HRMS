@@ -1,0 +1,275 @@
+<div class="space-y-8 animate-fade-in pb-12 p-6 bg-slate-50/50 min-h-screen">
+    <app-page-header title="Shift Master"
+        subtitle="Orchestrate company-wide rosters and shift configurations with precision."></app-page-header>
+
+    <!-- Header Stats & Actions -->
+    <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+        <!-- Stats Mini Cards -->
+        <div class="xl:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <mat-card class="!rounded-3xl border-0 shadow-sm p-6 bg-white overflow-hidden relative group">
+                <div class="relative z-10 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-primary-50 flex items-center justify-center text-primary-600">
+                        <mat-icon>settings_applications</mat-icon>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Shift Types</p>
+                        <h3 class="text-2xl font-black text-slate-900">{{shifts().length}}</h3>
+                    </div>
+                </div>
+            </mat-card>
+
+            <mat-card class="!rounded-3xl border-0 shadow-sm p-6 bg-white overflow-hidden relative group">
+                <div class="relative z-10 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center text-green-600">
+                        <mat-icon>assignment_turned_in</mat-icon>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Active Rosters
+                        </p>
+                        <h3 class="text-2xl font-black text-slate-900">{{activeAssignments()}}</h3>
+                    </div>
+                </div>
+            </mat-card>
+
+            <mat-card class="!rounded-3xl border-0 shadow-sm p-6 bg-white overflow-hidden relative group">
+                <div class="relative z-10 flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600">
+                        <mat-icon>pending_actions</mat-icon>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Schedule
+                        </p>
+                        <h3 class="text-2xl font-black text-slate-900">{{assignments().length}}</h3>
+                    </div>
+                </div>
+            </mat-card>
+        </div>
+
+        <!-- Quick Actions Panel -->
+        <mat-card
+            class="!rounded-3xl border-0 shadow-lg p-6 bg-gradient-to-br from-slate-900 to-primary-900 text-white overflow-hidden relative group h-full">
+            <div class="relative z-10 flex flex-col justify-center h-full gap-3">
+                <button mat-flat-button color="primary" class="!rounded-xl !py-7 shadow-lg shadow-primary-500/20"
+                    (click)="openAssignDialog()">
+                    <mat-icon class="mr-1">person_add</mat-icon> Assign Duty
+                </button>
+                <button mat-stroked-button
+                    class="!rounded-xl !py-7 !border-white/20 text-white hover:bg-white/5 transition-all"
+                    (click)="openShiftDialog()">
+                    <mat-icon class="mr-1">add</mat-icon> Create Pattern
+                </button>
+            </div>
+            <div class="absolute -right-4 -top-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <mat-icon class="!w-24 !h-24 !text-[96px]">auto_awesome</mat-icon>
+            </div>
+        </mat-card>
+    </div>
+
+    <!-- Main Content Tabs -->
+    <mat-tab-group dynamicHeight animationDuration="300ms"
+        class="premium-tabs !rounded-3xl overflow-hidden shadow-sm bg-white border border-slate-100">
+        <!-- Master Roster Tab -->
+        <mat-tab>
+            <ng-template mat-tab-label>
+                <div class="flex items-center gap-2 py-4 px-2">
+                    <mat-icon class="!text-lg">event_note</mat-icon>
+                    <span class="font-black uppercase tracking-widest text-[11px]">Master Roster</span>
+                </div>
+            </ng-template>
+
+            <div class="p-0 animate-slide-up">
+                <div
+                    class="p-6 border-b border-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="flex items-center gap-2">
+                        <mat-icon class="text-primary-600">search</mat-icon>
+                        <h4 class="text-xs font-black uppercase tracking-widest text-slate-400">Search Personnel</h4>
+                    </div>
+                    <mat-form-field appearance="outline" class="w-full md:w-96 !mb-[-20px] premium-search">
+                        <mat-label>Employee Name or Shift</mat-label>
+                        <input matInput [value]="searchTerm()" (input)="searchTerm.set($any($event.target).value)"
+                            placeholder="Search by name or roster...">
+                        <mat-icon matSuffix class="text-slate-300">manage_search</mat-icon>
+                    </mat-form-field>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table mat-table [dataSource]="filteredAssignments()" class="w-full">
+                        <ng-container matColumnDef="employeeName">
+                            <th mat-header-cell *matHeaderCellDef
+                                class="!bg-slate-50/50 !py-6 !px-8 !text-[10px] !font-black !text-slate-400 !uppercase !tracking-widest">
+                                Employee</th>
+                            <td mat-cell *matCellDef="let ass" class="!py-6 !px-8">
+                                <div class="flex items-center gap-4">
+                                    <div
+                                        class="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center text-[11px] font-black text-slate-500 uppercase border border-white shadow-sm">
+                                        {{ass.employeeName.substring(0, 2)}}
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="font-bold text-slate-800 leading-tight">{{ass.employeeName}}</span>
+                                        <span class="text-[10px] text-slate-400 font-medium">Internal Staff</span>
+                                    </div>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="shiftName">
+                            <th mat-header-cell *matHeaderCellDef
+                                class="!bg-slate-50/50 !py-6 !px-8 !text-[10px] !font-black !text-slate-400 !uppercase !tracking-widest">
+                                Roster Pattern</th>
+                            <td mat-cell *matCellDef="let ass" class="!py-6 !px-8">
+                                <div
+                                    class="px-3 py-1.5 rounded-xl bg-primary-50 border border-primary-100 inline-flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-primary-500 animate-pulse"></span>
+                                    <span class="text-primary-700 text-xs font-black">{{ass.shiftName}}</span>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="date">
+                            <th mat-header-cell *matHeaderCellDef
+                                class="!bg-slate-50/50 !py-6 !px-8 !text-[10px] !font-black !text-slate-400 !uppercase !tracking-widest">
+                                Effective Schedule</th>
+                            <td mat-cell *matCellDef="let ass" class="!py-6 !px-8">
+                                <div class="flex flex-col">
+                                    <span class="text-slate-600 font-bold tracking-tight">{{ass.assignmentDate |
+                                        date:'fullDate'}}</span>
+                                    <span class="text-[10px] text-slate-400 font-medium uppercase tracking-tighter">Duty
+                                        Commencement</span>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="status">
+                            <th mat-header-cell *matHeaderCellDef
+                                class="!bg-slate-50/50 !py-6 !px-8 !text-[10px] !font-black !text-slate-400 !uppercase !tracking-widest">
+                                Operational Status</th>
+                            <td mat-cell *matCellDef="let ass" class="!py-6 !px-8">
+                                <span
+                                    [class]="'px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm ' + (ass.isActive ? 'bg-green-500 text-white border-green-400' : 'bg-slate-100 text-slate-500 border-slate-200')">
+                                    {{ass.isActive ? 'Active Duty' : 'Archived'}}
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="actions">
+                            <th mat-header-cell *matHeaderCellDef class="!bg-slate-50/50"></th>
+                            <td mat-cell *matCellDef="let ass" class="text-right !px-8">
+                                <div class="flex items-center justify-end gap-2">
+                                    <button mat-icon-button (click)="viewHistory(ass.employeeId, ass.employeeName)"
+                                        class="text-slate-400 hover:text-primary-600 transition-all"
+                                        matTooltip="History portal">
+                                        <mat-icon class="!text-xl">history</mat-icon>
+                                    </button>
+                                    <button mat-icon-button [matMenuTriggerFor]="assMenu"
+                                        class="text-slate-300 hover:text-red-500 transition-all">
+                                        <mat-icon class="!text-xl">delete_outline</mat-icon>
+                                    </button>
+                                </div>
+                                <mat-menu #assMenu="matMenu" xPosition="before" class="premium-menu">
+                                    <button mat-menu-item class="text-red-600 font-bold"
+                                        (click)="deleteAssignment(ass.id)">
+                                        <mat-icon class="text-red-600">bolt</mat-icon> <span>Terminate Assignment</span>
+                                    </button>
+                                </mat-menu>
+                            </td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="assignmentColumns"></tr>
+                        <tr mat-row *matRowDef="let row; columns: assignmentColumns;"
+                            class="hover:bg-slate-50/50 transition-all cursor-default h-20"></tr>
+                    </table>
+
+                    <div *ngIf="assignments().length === 0" class="p-20 text-center animate-fade-in">
+                        <div
+                            class="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                            <mat-icon class="text-slate-300">history</mat-icon>
+                        </div>
+                        <p class="font-bold text-slate-900">No Assignments Yet</p>
+                        <p class="text-xs text-slate-400 max-w-[200px] mx-auto mt-1">Start by assigning work shifts to
+                            your employees using the Quick Actions panel.</p>
+                    </div>
+                </div>
+            </div>
+        </mat-tab>
+
+        <!-- Configuration Tab -->
+        <mat-tab>
+            <ng-template mat-tab-label>
+                <div class="flex items-center gap-2 py-4 px-2">
+                    <mat-icon class="!text-lg">tune</mat-icon>
+                    <span class="font-black uppercase tracking-widest text-[11px]">Configurations</span>
+                </div>
+            </ng-template>
+
+            <div class="p-0 animate-slide-up">
+                <div class="overflow-x-auto">
+                    <table mat-table [dataSource]="shifts()" class="w-full">
+                        <ng-container matColumnDef="name">
+                            <th mat-header-cell *matHeaderCellDef
+                                class="!bg-slate-50/50 !py-6 !px-8 !text-[10px] !font-black !text-slate-400 !uppercase !tracking-widest">
+                                Shift Template</th>
+                            <td mat-cell *matCellDef="let shift" class="!py-6 !px-8">
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="w-8 h-8 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center">
+                                        <mat-icon class="!text-sm">label</mat-icon>
+                                    </div>
+                                    <span class="font-bold text-slate-800">{{shift.name}}</span>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="startTime">
+                            <th mat-header-cell *matHeaderCellDef
+                                class="!bg-slate-50/50 !py-6 !px-8 !text-[10px] !font-black !text-slate-400 !uppercase !tracking-widest">
+                                Commence Time</th>
+                            <td mat-cell *matCellDef="let shift"
+                                class="!py-6 !px-8 text-slate-600 font-bold tracking-tight">{{shift.startTime}}</td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="endTime">
+                            <th mat-header-cell *matHeaderCellDef
+                                class="!bg-slate-50/50 !py-6 !px-8 !text-[10px] !font-black !text-slate-400 !uppercase !tracking-widest">
+                                Conclude Time</th>
+                            <td mat-cell *matCellDef="let shift"
+                                class="!py-6 !px-8 text-slate-600 font-bold tracking-tight">{{shift.endTime}}</td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="actions">
+                            <th mat-header-cell *matHeaderCellDef class="!bg-slate-50/50"></th>
+                            <td mat-cell *matCellDef="let shift" class="text-right !px-8">
+                                <button mat-icon-button [matMenuTriggerFor]="menu"
+                                    class="text-slate-400 hover:text-primary-600 transition-all">
+                                    <mat-icon>more_vert</mat-icon>
+                                </button>
+                                <mat-menu #menu="matMenu" xPosition="before" class="premium-menu">
+                                    <button mat-menu-item (click)="openShiftDialog(shift)">
+                                        <mat-icon>edit</mat-icon> <span>Modify Configuration</span>
+                                    </button>
+                                    <button mat-menu-item class="text-red-600" (click)="deleteShift(shift.id)">
+                                        <mat-icon class="text-red-600">delete_outline</mat-icon> <span
+                                            class="text-red-600">Delete Pattern</span>
+                                    </button>
+                                </mat-menu>
+                            </td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                        <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+                            class="hover:bg-slate-50/50 transition-all cursor-default h-20"></tr>
+                    </table>
+
+                    <div *ngIf="shifts().length === 0" class="p-20 text-center animate-fade-in">
+                        <div
+                            class="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                            <mat-icon class="text-slate-300">tune</mat-icon>
+                        </div>
+                        <p class="font-bold text-slate-900">System Ready</p>
+                        <p class="text-xs text-slate-400 max-w-[200px] mx-auto mt-1">Define your first shift pattern to
+                            begin automating your HR rosters.</p>
+                    </div>
+                </div>
+            </div>
+        </mat-tab>
+    </mat-tab-group>
+</div>

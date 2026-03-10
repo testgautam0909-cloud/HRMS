@@ -76,6 +76,15 @@ public class ShiftController : ControllerBase
     [Authorize(Roles = "Admin,HR,Manager,Employee")]
     public async Task<IActionResult> GetShiftAssignmentsByEmployee(Guid employeeId)
     {
+        if (User.IsInRole("Employee"))
+        {
+            var currentEmployeeId = User.FindFirst("EmployeeId")?.Value;
+            if (string.IsNullOrEmpty(currentEmployeeId) || Guid.Parse(currentEmployeeId) != employeeId)
+            {
+                return Forbid();
+            }
+        }
+
         var assignments = await _service.GetShiftAssignmentsByEmployeeAsync(employeeId);
         return Ok(ApiResponse<IEnumerable<ShiftAssignmentDto>>.Ok(assignments, "Employee shift assignments retrieved successfully."));
     }
@@ -95,5 +104,14 @@ public class ShiftController : ControllerBase
     {
         var schedule = await _service.GetEmployeeShiftScheduleAsync(employeeId);
         return Ok(ApiResponse<EmployeeShiftScheduleDto>.Ok(schedule, "Employee shift schedule retrieved successfully."));
+    }
+
+    [HttpDelete("assignments/{id:guid}")]
+    [Authorize(Roles = "Admin,HR,Manager")]
+    public async Task<IActionResult> DeleteAssignment(Guid id)
+    {
+        var performedBy = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "system";
+        await _service.DeleteShiftAssignmentAsync(id, performedBy);
+        return Ok(ApiResponse<object>.Ok(null!, "Shift assignment deleted successfully."));
     }
 }

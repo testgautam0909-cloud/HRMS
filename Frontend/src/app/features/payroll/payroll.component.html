@@ -5,10 +5,11 @@
     <!-- Quick Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <mat-card
-            class="bg-primary-600 text-white p-8 rounded-3xl shadow-xl shadow-primary-600/20 relative overflow-hidden group border-0 text-left">
+            class="!bg-primary-600 text-white p-8 rounded-3xl shadow-xl shadow-primary-600/20 relative overflow-hidden group border-0 text-left">
             <div class="relative z-10">
                 <p class="text-[10px] font-black text-primary-200 uppercase tracking-[0.2em] mb-2">Last Net Salary</p>
-                <h3 class="text-4xl font-black mb-1 tracking-tight">{{ (lastSalary()?.netSalary || 0) |
+                <h3 class="text-4xl font-black mb-1 tracking-tight text-white">{{ (lastSalary()?.netSalary || 0)
+                    |
                     currency:'USD':'symbol':'1.0-2' }}</h3>
                 <p class="text-xs font-bold text-primary-100 opacity-80">{{ lastSalary()?.monthName || 'No Data' }} {{
                     lastSalary()?.year || '' }}</p>

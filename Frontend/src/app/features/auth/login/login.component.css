@@ -4,27 +4,17 @@
 
 .login-card {
     background: #ffffff;
-}
-
-::ng-deep .mat-mdc-form-field-subscript-wrapper {
-    display: none;
-    /* Hide subscript for cleaner look, handle errors manually or via mat-error */
-}
-
-::ng-deep .mat-mdc-form-field-appearance-outline .mat-mdc-text-field-wrapper {
-    background-color: #f8fafc;
-    border-radius: 16px;
-    padding: 0 16px;
-}
-
-::ng-deep .mat-mdc-form-field-appearance-outline .mdc-notched-outline__leading,
-::ng-deep .mat-mdc-form-field-appearance-outline .mdc-notched-outline__notch,
-::ng-deep .mat-mdc-form-field-appearance-outline .mdc-notched-outline__trailing {
-    border-color: #e2e8f0 !important;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1),
+        0 10px 20px -5px rgba(0, 0, 0, 0.05),
+        0 0 0 1px rgba(0, 0, 0, 0.02) inset;
 }
 
 .animate-slide-up {
     animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-bounce-subtle {
+    animation: bounceSubtle 2s infinite ease-in-out;
 }
 
 .animate-fade-in {
@@ -33,6 +23,33 @@
 
 .animate-shake {
     animation: shake 0.5s cubic-bezier(.36, .07, .19, .97) both;
+}
+
+::ng-deep .mat-mdc-checkbox .mdc-checkbox__background {
+    border-radius: 6px !important;
+}
+
+.login-button {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(135deg, var(--mat-sys-primary) 0%, var(--mat-sys-primary-fixed) 100%);
+}
+
+.login-button:hover:not(:disabled) {
+    box-shadow: 0 20px 25px -5px rgba(var(--mat-sys-primary-rgb), 0.4),
+        0 10px 10px -5px rgba(var(--mat-sys-primary-rgb), 0.2);
+    transform: translateY(-2px);
+}
+
+@keyframes bounceSubtle {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
 }
 
 @keyframes slideUp {

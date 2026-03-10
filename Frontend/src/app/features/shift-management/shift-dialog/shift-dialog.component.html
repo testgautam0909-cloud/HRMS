@@ -1,0 +1,55 @@
+<div class="premium-dialog-container">
+    <div mat-dialog-title class="!flex !items-center !gap-3 !p-6 !mb-0 border-b border-slate-100 bg-slate-50/50">
+        <div
+            class="w-10 h-10 rounded-xl bg-primary-600 flex items-center justify-center text-white shadow-lg shadow-primary-900/20">
+            <mat-icon>settings_applications</mat-icon>
+        </div>
+        <div>
+            <h2 class="!m-0 !text-lg !font-black !text-slate-900 !leading-tight">{{ isEdit ? 'Edit Shift Pattern' : 'New
+                Shift Configuration' }}</h2>
+            <p class="!m-0 !text-[10px] !font-bold !text-slate-400 !uppercase !tracking-widest">Global Pattern
+                Definition</p>
+        </div>
+    </div>
+
+    <mat-dialog-content class="!p-8 !mt-4">
+        <form [formGroup]="shiftForm" class="flex flex-col gap-6">
+            <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Shift Label</mat-label>
+                <mat-icon matPrefix class="text-slate-400 mr-2">label</mat-icon>
+                <input matInput formControlName="name" placeholder="e.g. Morning Regular">
+                <mat-error *ngIf="shiftForm.get('name')?.hasError('required')">Label is required</mat-error>
+            </mat-form-field>
+
+            <div class="grid grid-cols-2 gap-4">
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Commence Time</mat-label>
+                    <mat-icon matPrefix class="text-slate-400 mr-2">login</mat-icon>
+                    <input matInput type="time" formControlName="startTime">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Conclude Time</mat-label>
+                    <mat-icon matPrefix class="text-slate-400 mr-2">logout</mat-icon>
+                    <input matInput type="time" formControlName="endTime">
+                </mat-form-field>
+            </div>
+
+            <div class="flex items-center gap-2 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <mat-icon class="text-slate-400">info_outline</mat-icon>
+                <p class="text-[10px] text-slate-500 font-medium leading-tight m-0">
+                    Users assigned to this shift pattern will follow these working hours for the duration of the roster.
+                </p>
+            </div>
+        </form>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end" class="!px-8 !pb-8 !pt-4 gap-3">
+        <button mat-button mat-dialog-close
+            class="!rounded-xl !px-6 text-slate-500 font-bold uppercase tracking-widest text-[10px]">Back</button>
+        <button mat-flat-button color="primary" class="!rounded-xl !px-8 !py-6 shadow-xl shadow-primary-900/40"
+            [disabled]="shiftForm.invalid" (click)="onSubmit()">
+            {{ isEdit ? 'Update Configuration' : 'Save Pattern' }}
+        </button>
+    </mat-dialog-actions>
+</div>

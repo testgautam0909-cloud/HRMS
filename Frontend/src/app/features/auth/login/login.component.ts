@@ -8,6 +8,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-login',
@@ -20,7 +22,9 @@ import { MatIconModule } from '@angular/material/icon';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    MatCheckboxModule,
+    MatTooltipModule
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
@@ -31,9 +35,26 @@ export class LoginComponent {
   private router = inject(Router);
 
   loginForm = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]]
+    email: ['', {
+      validators: [Validators.required, Validators.email],
+      updateOn: 'blur'
+    }],
+    password: ['', {
+      validators: [Validators.required, Validators.minLength(6)],
+      updateOn: 'blur'
+    }],
+    rememberMe: [false]
   });
+
+  ngOnInit() {
+    const savedEmail = localStorage.getItem('rememberedEmail');
+    if (savedEmail) {
+      this.loginForm.patchValue({
+        email: savedEmail,
+        rememberMe: true
+      });
+    }
+  }
 
   isLoading = signal(false);
   error = signal<string | null>(null);
@@ -55,6 +76,13 @@ export class LoginComponent {
       next: (res) => {
         if (res.success) {
           this.success.set('Login successful! Redirecting...');
+
+          if (this.loginForm.value.rememberMe) {
+            localStorage.setItem('rememberedEmail', this.loginForm.value.email || '');
+          } else {
+            localStorage.removeItem('rememberedEmail');
+          }
+
           setTimeout(() => {
             this.router.navigate(['/dashboard']);
           }, 1500);

@@ -44,6 +44,4 @@ mat-card {
     border-radius: 4px;
 }
 
-::ng-deep .mat-mdc-form-field-subscript-wrapper {
-    display: none;
-}
+/* Error subscript preserved for validation messages */

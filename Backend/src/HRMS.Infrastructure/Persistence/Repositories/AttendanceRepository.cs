@@ -12,8 +12,19 @@ public class AttendanceRepository : GenericRepository<AttendanceRecord>, IAttend
 
     public async Task<AttendanceRecord?> GetTodayRecordAsync(Guid employeeId, DateTime date)
     {
-        return await _dbSet.FirstOrDefaultAsync(a =>
-            a.EmployeeId == employeeId && a.Date.Date == date.Date);
+        return await _dbSet
+            .Where(a => a.EmployeeId == employeeId && a.Date.Date == date.Date)
+            .OrderByDescending(a => a.CheckInTime)
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<AttendanceRecord?> GetLatestOpenRecordAsync(Guid employeeId, DateTime date)
+    {
+        return await _dbSet
+            .FirstOrDefaultAsync(a =>
+                a.EmployeeId == employeeId &&
+                a.Date.Date == date.Date &&
+                a.CheckOutTime == null);
     }
 
     public async Task<IEnumerable<AttendanceRecord>> GetMonthlyRecordsAsync(Guid employeeId, int month, int year)

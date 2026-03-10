@@ -28,9 +28,9 @@ public class AttendanceService : IAttendanceService
             throw new Shared.Exceptions.ValidationException(
                 new Dictionary<string, string[]> { { "Date", new[] { "Cannot check in for a future date." } } });
 
-        var existing = await _unitOfWork.Attendances.GetTodayRecordAsync(employeeId, dto.Date);
-        if (existing != null)
-            throw new ConflictException("Employee already has a check-in record for this date.");
+        var hasOpen = await _unitOfWork.Attendances.HasOpenCheckInAsync(employeeId, dto.Date);
+        if (hasOpen)
+            throw new ConflictException("Employee already has an open check-in session for this date.");
 
         var record = new AttendanceRecord
         {
@@ -51,9 +51,9 @@ public class AttendanceService : IAttendanceService
 
     public async Task<AttendanceResponseDto> CheckOutAsync(Guid employeeId, CheckOutDto dto, string performedBy)
     {
-        var record = await _unitOfWork.Attendances.GetTodayRecordAsync(employeeId, dto.Date);
+        var record = await _unitOfWork.Attendances.GetLatestOpenRecordAsync(employeeId, dto.Date);
         if (record == null)
-            throw new NotFoundException("AttendanceRecord", $"Employee {employeeId} on {dto.Date:yyyy-MM-dd}");
+            throw new NotFoundException("AttendanceRecord", $"No open attendance record found for employee {employeeId} on {dto.Date:yyyy-MM-dd}");
 
         if (record.CheckOutTime != null)
             throw new ConflictException("Employee has already checked out for this date.");
@@ -88,11 +88,20 @@ public class AttendanceService : IAttendanceService
 
         var records = await _unitOfWork.Attendances.GetMonthlyRecordsAsync(employeeId, month, year);
         var recordList = records.ToList();
+        var dailyGroups = recordList.GroupBy(r => r.Date.Date).ToList();
 
         var workingDays = DateHelper.GetWorkingDaysInMonth(year, month);
-        var present = recordList.Count(r => r.Status == AttendanceStatus.Present);
-        var halfDays = recordList.Count(r => r.Status == AttendanceStatus.HalfDay);
-        var totalHours = recordList.Where(r => r.WorkHours.HasValue).Sum(r => r.WorkHours!.Value);
+        
+        // For multiple records in a day, we sum the hours and determine the day-level status
+        var dailyStats = dailyGroups.Select(g => new 
+        {
+            TotalHours = g.Where(r => r.WorkHours.HasValue).Sum(r => r.WorkHours!.Value),
+            Date = g.Key
+        }).ToList();
+
+        var present = dailyStats.Count(s => s.TotalHours >= 4);
+        var halfDays = dailyStats.Count(s => s.TotalHours >= 2 && s.TotalHours < 4);
+        var totalHours = dailyStats.Sum(s => s.TotalHours);
 
         return new AttendanceSummaryDto
         {
@@ -102,10 +111,10 @@ public class AttendanceService : IAttendanceService
             Year = year,
             TotalWorkingDays = workingDays,
             DaysPresent = present,
-            DaysAbsent = workingDays - present - halfDays,
+            DaysAbsent = Math.Max(0, workingDays - present - halfDays),
             HalfDays = halfDays,
             TotalWorkHours = totalHours,
-            AverageDailyHours = recordList.Count > 0 ? Math.Round(totalHours / recordList.Count, 2) : 0
+            AverageDailyHours = dailyStats.Count > 0 ? Math.Round(totalHours / dailyStats.Count, 2) : 0
         };
     }
 

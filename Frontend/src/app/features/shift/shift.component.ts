@@ -1,6 +1,6 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ApiService } from '../../core/services/api.service';
+import { ShiftService } from '../../core/services/shift.service';
 import { AuthService } from '../../core/services/auth.service';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -25,7 +25,7 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
   styleUrl: './shift.component.css'
 })
 export class ShiftComponent implements OnInit {
-  private api = inject(ApiService);
+  private shiftService = inject(ShiftService);
   private auth = inject(AuthService);
 
   currentShift = signal<any>(null);
@@ -40,14 +40,30 @@ export class ShiftComponent implements OnInit {
     const empId = user?.employeeId;
     if (!empId) return;
 
-    this.api.get<any>(`shift/schedule/employee/${empId}`).subscribe({
+    this.shiftService.getEmployeeSchedule(empId).subscribe({
       next: (res: any) => {
-        const data = res.data;
-        this.currentShift.set(data.currentShift);
-        this.schedule.set(data.upcomingSchedule.map((s: any) => ({
-          ...s,
-          isToday: new Date(s.date).toDateString() === new Date().toDateString()
-        })));
+        const data = res.data; // This is EmployeeShiftScheduleDto
+
+        if (data && data.shiftDetails && data.shiftDetails.length > 0) {
+          const today = new Date().toDateString();
+
+          // Find the active shift for TODAY specifically
+          const activeToday = data.shiftDetails.find((s: any) =>
+            s.isActive && new Date(s.assignmentDate).toDateString() === today
+          );
+
+          this.currentShift.set(activeToday || null);
+
+          // Map all details to the schedule
+          this.schedule.set(data.shiftDetails.map((s: any) => ({
+            ...s,
+            date: s.assignmentDate,
+            isToday: new Date(s.assignmentDate).toDateString() === today
+          })));
+        } else {
+          this.currentShift.set(null);
+          this.schedule.set([]);
+        }
       }
     });
   }

@@ -68,7 +68,8 @@ public class MappingProfile : Profile
             .ForMember(d => d.Category, o => o.MapFrom(s => s.Category.ToString()));
 
         CreateMap<ChatConversation, ConversationResponseDto>()
-            .ForMember(d => d.Type, o => o.MapFrom(s => s.Type.ToString()));
+            .ForMember(d => d.Type, o => o.MapFrom(s => s.Type.ToString()))
+            .ForMember(d => d.LastMessage, o => o.MapFrom(s => s.Messages.OrderByDescending(m => m.SentAt).FirstOrDefault()));
         CreateMap<ChatMember, ChatMemberDto>()
             .ForMember(d => d.EmployeeName, o => o.MapFrom(s => $"{s.Employee.FirstName} {s.Employee.LastName}"));
         CreateMap<ChatMessage, MessageResponseDto>()

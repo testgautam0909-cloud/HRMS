@@ -46,7 +46,7 @@ public class EmployeeController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Roles = "Admin,HR")]
+    [Authorize(Roles = "Admin,HR,Employee,Manager")]
     public async Task<IActionResult> GetAll([FromQuery] string? search, [FromQuery] Guid? departmentId, [FromQuery] bool? isActive, [FromQuery] PaginationParams pagination)
     {
         return Ok(await _service.GetAllPagedAsync(search, departmentId, isActive, pagination));

@@ -1,240 +1,274 @@
-<div class="space-y-8 animate-fade-in p-6">
+<div class="space-y-8 animate-fade-in p-2 md:p-6 pb-20">
     <!-- Welcome Section -->
     <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <mat-card
-            class="xl:col-span-2 welcome-card p-10 border-0 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 overflow-hidden relative bg-white">
+            class="xl:col-span-2 p-8 md:p-10 border-0 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 overflow-hidden relative bg-white rounded-[2.5rem]">
             <div class="relative z-10">
-                <h1 class="text-4xl font-black text-slate-900 tracking-tight mb-2">
+                <h1 class="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter mb-3">
                     Good Morning, {{ auth.currentUser()?.fullName || 'User' }}! 👋
                 </h1>
-                <p class="text-slate-500 text-lg font-medium opacity-80 leading-relaxed max-w-md">
-                    Welcome back to HRMS Professional. You have <span class="text-primary-600 font-bold">3 pending
-                        tasks</span> for today.
+                <p class="text-slate-500 text-lg font-medium opacity-80 leading-relaxed max-w-lg">
+                    System health is <span class="text-secondary-600 font-bold">Optimal</span>. You have
+                    <span class="text-primary-600 font-bold">{{ pendingLeavesCount() }} pending leave requests</span> to
+                    review.
                 </p>
                 <div class="mt-8 flex items-center gap-6">
-                    <div class="flex -space-x-3">
-                        <div *ngFor="let i of [1,2,3,4]"
-                            class="w-10 h-10 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-400 overflow-hidden">
-                            <img [src]="'https://i.pravatar.cc/100?u=' + i" alt="User">
-                        </div>
-                        <div
-                            class="w-10 h-10 rounded-full border-2 border-white bg-primary-600 flex items-center justify-center text-[10px] font-bold text-white">
-                            +12
+                    <div class="flex -space-x-4">
+                        <ng-container *ngFor="let emp of recentEmployees() | slice:0:4; let i = index">
+                            <div class="w-12 h-12 rounded-2xl border-4 border-white bg-slate-100 flex items-center justify-center text-xs font-black text-slate-400 overflow-hidden shadow-md"
+                                [matTooltip]="emp.name">
+                                <img *ngIf="emp.profilePicture" [src]="emp.profilePicture" [alt]="emp.name">
+                                <span *ngIf="!emp.profilePicture">{{ emp.initials }}</span>
+                            </div>
+                        </ng-container>
+                        <div *ngIf="totalEmployees() > 4"
+                            class="w-12 h-12 rounded-2xl border-4 border-white bg-secondary-600 flex items-center justify-center text-xs font-black text-white shadow-md">
+                            +{{ totalEmployees() - 4 }}
                         </div>
                     </div>
-                    <p class="text-sm font-semibold text-slate-400">Team is active now</p>
+                    <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">
+                        Team is active now
+                    </p>
                 </div>
             </div>
             <div class="flex flex-col items-end gap-4 relative z-10">
                 <div
-                    class="px-6 py-3 bg-slate-50 rounded-2xl text-slate-700 font-black text-xs shadow-sm shadow-slate-200/50 border border-slate-100 flex items-center gap-3 uppercase tracking-widest">
-                    <mat-icon class="text-primary-600 !w-5 !h-5 !text-[20px]">calendar_today</mat-icon>
+                    class="px-6 py-4 bg-slate-900 rounded-[1.5rem] text-white font-black text-xs shadow-2xl flex items-center gap-4 uppercase tracking-[0.2em] border border-white/10">
+                    <mat-icon class="text-primary-500 !w-5 !h-5 !text-[20px]">calendar_today</mat-icon>
                     {{ today | date:'EEEE, MMM d, y' }}
                 </div>
             </div>
             <!-- Decorative background shapes -->
             <div class="absolute -top-24 -right-24 w-80 h-80 bg-primary-50/50 rounded-full blur-3xl"></div>
-            <div class="absolute -bottom-24 -left-24 w-60 h-60 bg-accent-50/50 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-24 -left-24 w-60 h-60 bg-secondary-50/50 rounded-full blur-3xl"></div>
         </mat-card>
 
         <!-- Quick Actions Panel -->
         <mat-card
-            class="p-8 border-0 shadow-sm bg-slate-900 text-white rounded-[2.5rem] relative overflow-hidden flex flex-col justify-between">
+            class="p-8 border-0 shadow-2xl !bg-secondary-600 text-white rounded-[2.5rem] relative overflow-hidden flex flex-col justify-between group">
             <div class="relative z-10">
-                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-primary-400 mb-6">Quick Actions</p>
+                <p class="text-[10px] font-black uppercase tracking-[0.3em] text-white/60 mb-8">System Actions</p>
                 <div class="grid grid-cols-2 gap-4">
                     <button
-                        class="flex flex-col items-center justify-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-3xl transition-all border border-white/5 active:scale-95 group">
+                        class="flex flex-col items-center justify-center gap-4 p-5 bg-white/10 hover:bg-white/20 rounded-[2rem] transition-all border border-white/5 active:scale-95 group/btn">
                         <div
-                            class="w-12 h-12 rounded-2xl bg-primary-500/20 flex items-center justify-center text-primary-400 group-hover:scale-110 transition-transform">
-                            <mat-icon>login</mat-icon>
+                            class="w-12 h-12 rounded-[1.25rem] bg-primary-500 flex items-center justify-center text-white shadow-xl shadow-primary-500/20 group-hover/btn:scale-110 transition-transform">
+                            <mat-icon>timer</mat-icon>
                         </div>
-                        <span class="text-xs font-black uppercase tracking-widest">Check In</span>
+                        <span class="text-[10px] font-black uppercase tracking-[0.2em]">Check In</span>
                     </button>
                     <button routerLink="/leave"
-                        class="flex flex-col items-center justify-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-3xl transition-all border border-white/5 active:scale-95 group">
+                        class="flex flex-col items-center justify-center gap-4 p-5 bg-white/10 hover:bg-white/20 rounded-[2rem] transition-all border border-white/5 active:scale-95 group/btn">
                         <div
-                            class="w-12 h-12 rounded-2xl bg-amber-500/20 flex items-center justify-center text-amber-400 group-hover:scale-110 transition-transform">
+                            class="w-12 h-12 rounded-[1.25rem] bg-white/20 flex items-center justify-center text-white group-hover/btn:scale-110 transition-transform">
                             <mat-icon>event_busy</mat-icon>
                         </div>
-                        <span class="text-xs font-black uppercase tracking-widest">Leave</span>
+                        <span class="text-[10px] font-black uppercase tracking-[0.2em]">Leave</span>
                     </button>
                     <button routerLink="/payroll"
-                        class="flex flex-col items-center justify-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-3xl transition-all border border-white/5 active:scale-95 group">
+                        class="flex flex-col items-center justify-center gap-4 p-5 bg-white/10 hover:bg-white/20 rounded-[2rem] transition-all border border-white/5 active:scale-95 group/btn">
                         <div
-                            class="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
-                            <mat-icon>receipt_long</mat-icon>
+                            class="w-12 h-12 rounded-[1.25rem] bg-white/20 flex items-center justify-center text-white group-hover/btn:scale-110 transition-transform">
+                            <mat-icon>account_balance_wallet</mat-icon>
                         </div>
-                        <span class="text-xs font-black uppercase tracking-widest">Payslip</span>
+                        <span class="text-[10px] font-black uppercase tracking-[0.2em]">Payroll</span>
                     </button>
                     <button
-                        class="flex flex-col items-center justify-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-3xl transition-all border border-white/5 active:scale-95 group">
+                        class="flex flex-col items-center justify-center gap-4 p-5 bg-white/10 hover:bg-white/20 rounded-[2rem] transition-all border border-white/5 active:scale-95 group/btn">
                         <div
-                            class="w-12 h-12 rounded-2xl bg-slate-500/20 flex items-center justify-center text-slate-400 group-hover:scale-110 transition-transform">
-                            <mat-icon>settings</mat-icon>
+                            class="w-12 h-12 rounded-[1.25rem] bg-white/20 flex items-center justify-center text-white group-hover/btn:scale-110 transition-transform">
+                            <mat-icon>history</mat-icon>
                         </div>
-                        <span class="text-xs font-black uppercase tracking-widest">Settings</span>
+                        <span class="text-[10px] font-black uppercase tracking-[0.2em]">History</span>
                     </button>
                 </div>
             </div>
-            <div class="absolute -right-10 -bottom-10 w-40 h-40 bg-primary-500/10 rounded-full blur-3xl"></div>
+            <div
+                class="absolute -right-20 -bottom-20 w-48 h-48 bg-primary-500/20 rounded-full blur-3xl group-hover:bg-primary-500/30 transition-all">
+            </div>
         </mat-card>
     </div>
 
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <ng-container
-            *ngIf="!attendanceLoading() && !employeesLoading() && !leavesLoading() && !payrollLoading(); else statsSkeletons">
-            <mat-card *ngFor="let stat of stats()"
-                class="stat-card p-7 border-0 shadow-sm hover:shadow-md transition-all duration-300 group cursor-default">
-                <div class="flex items-center justify-between mb-5">
-                    <div [class]="'w-14 h-14 rounded-2xl flex items-center justify-center ' + stat.colorClass">
-                        <mat-icon class="text-2xl">{{ stat.icon }}</mat-icon>
+        <ng-container *ngIf="!isLoading(); else statsSkeletons">
+            <!-- Total Employees -->
+            <mat-card
+                class="p-8 border-0 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 rounded-[2rem] bg-white group overflow-hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <div
+                        class="w-14 h-14 rounded-2xl bg-secondary-50 text-secondary-600 flex items-center justify-center group-hover:bg-secondary-600 group-hover:text-white transition-all duration-500">
+                        <mat-icon class="text-2xl">groups</mat-icon>
                     </div>
                 </div>
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-[0.1em] mb-2">{{ stat.label }}</p>
-                <p class="text-3xl font-black text-slate-900 tracking-tight">{{ stat.value }}</p>
+                <p class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Total Employees</p>
+                <p class="text-4xl font-black text-slate-900 tracking-tighter">{{ totalEmployees() }}</p>
+            </mat-card>
+
+            <!-- Attendance Rate -->
+            <mat-card
+                class="p-8 border-0 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 rounded-[2rem] bg-white group overflow-hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <div
+                        class="w-14 h-14 rounded-2xl bg-primary-50 text-primary-600 flex items-center justify-center group-hover:bg-primary-500 group-hover:text-white transition-all duration-500">
+                        <mat-icon class="text-2xl">donut_large</mat-icon>
+                    </div>
+                </div>
+                <p class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Attendance Today</p>
+                <div class="flex items-end gap-3">
+                    <p class="text-4xl font-black text-slate-900 tracking-tighter">{{ attendanceRate() }}%</p>
+                    <div class="w-20 h-1.5 bg-slate-100 rounded-full mb-3 overflow-hidden">
+                        <div class="h-full bg-primary-500 rounded-full" [style.width.%]="attendanceRate()"></div>
+                    </div>
+                </div>
+            </mat-card>
+
+            <!-- On Leave -->
+            <mat-card
+                class="p-8 border-0 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 rounded-[2rem] bg-white group overflow-hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <div
+                        class="w-14 h-14 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center group-hover:bg-orange-500 group-hover:text-white transition-all duration-500">
+                        <mat-icon class="text-2xl">event_busy</mat-icon>
+                    </div>
+                </div>
+                <p class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-2">On Leave Today</p>
+                <p class="text-4xl font-black text-slate-900 tracking-tighter">{{ onLeaveToday() }}
+                </p>
+            </mat-card>
+
+            <!-- Avg Hours -->
+            <mat-card
+                class="p-8 border-0 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500 rounded-[2rem] bg-white group overflow-hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <div
+                        class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all duration-500">
+                        <mat-icon class="text-2xl">history</mat-icon>
+                    </div>
+                </div>
+                <p class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Avg Hours/Month</p>
+                <p class="text-4xl font-black text-slate-900 tracking-tighter">{{ avgWorkHours() }}h</p>
             </mat-card>
         </ng-container>
+
         <ng-template #statsSkeletons>
-            <mat-card *ngFor="let i of [1,2,3,4]" class="p-7 border-0 shadow-sm">
+            <mat-card *ngFor="let i of [1,2,3,4]" class="p-8 border-0 shadow-sm rounded-[2rem]">
                 <app-loading-skeleton width="56px" height="56px" borderRadius="16px"
-                    class="mb-5"></app-loading-skeleton>
+                    class="mb-6"></app-loading-skeleton>
                 <app-loading-skeleton width="80px" height="12px" class="mb-2"></app-loading-skeleton>
-                <app-loading-skeleton width="120px" height="32px"></app-loading-skeleton>
+                <app-loading-skeleton width="120px" height="40px"></app-loading-skeleton>
             </mat-card>
         </ng-template>
     </div>
 
     <!-- Charts Section -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <mat-card class="p-8 border-0 shadow-sm">
+        <mat-card class="p-8 border-0 shadow-sm rounded-[2.5rem] bg-white h-96">
             <div class="flex items-center justify-between mb-8">
-                <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
-                    <mat-icon color="primary">bar_chart</mat-icon>
-                    Attendance Overview
+                <h3 class="text-xl font-black text-slate-900 flex items-center gap-3 uppercase tracking-tighter">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-secondary-50 text-secondary-600 flex items-center justify-center">
+                        <mat-icon class="!text-[20px]">bar_chart</mat-icon>
+                    </div>
+                    Work Hours Trend
                 </h3>
             </div>
-            <div class="h-72 relative">
+            <div class="h-64 relative">
                 <canvas baseChart [data]="barChartData" [options]="barChartOptions" [type]="'bar'"></canvas>
             </div>
         </mat-card>
 
-        <mat-card class="p-8 border-0 shadow-sm">
+        <mat-card class="p-8 border-0 shadow-sm rounded-[2.5rem] bg-white h-96">
             <div class="flex items-center justify-between mb-8">
-                <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
-                    <mat-icon color="accent">pie_chart</mat-icon>
-                    Leave Balance Distribution
+                <h3 class="text-xl font-black text-slate-900 flex items-center gap-3 uppercase tracking-tighter">
+                    <div class="w-10 h-10 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center">
+                        <mat-icon class="!text-[20px]">pie_chart</mat-icon>
+                    </div>
+                    Leave Distribution
                 </h3>
             </div>
-            <div class="h-72 relative flex items-center justify-center">
+            <div class="h-64 relative flex items-center justify-center">
                 <canvas baseChart [data]="pieChartData" [options]="pieChartOptions" [type]="'pie'"></canvas>
             </div>
         </mat-card>
     </div>
 
-    <!-- Recent Activity Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Recent Employees -->
-        <mat-card class="lg:col-span-2 p-8 border-0 shadow-sm">
+    <!-- Bottom Section: Tasks & Activity -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-10">
+        <!-- Pending Tasks -->
+        <mat-card class="lg:col-span-2 p-8 border-0 shadow-sm rounded-[2.5rem] bg-white">
             <div class="flex items-center justify-between mb-8">
-                <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
-                    <mat-icon class="text-primary-600">group_add</mat-icon>
-                    Recent Employee Onboarding
+                <h3 class="text-xl font-black text-slate-900 flex items-center gap-3 uppercase tracking-tighter">
+                    <div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
+                        <mat-icon class="!text-[20px]">checklist</mat-icon>
+                    </div>
+                    Pending Approvals
                 </h3>
-                <button mat-button color="primary" class="font-bold rounded-xl" routerLink="/employees">
-                    View All
-                    <mat-icon class="ml-1 text-sm">arrow_forward</mat-icon>
-                </button>
             </div>
 
             <div class="space-y-4">
-                <ng-container *ngIf="!employeesLoading(); else employeeSkeletons">
-                    <div *ngFor="let emp of recentEmployees()" [routerLink]="['/employees', emp.id]"
-                        class="flex items-center justify-between p-5 bg-slate-50/50 rounded-2xl hover:bg-white hover:shadow-lg hover:shadow-slate-200/50 transition-all duration-300 group cursor-pointer border border-transparent hover:border-slate-100">
+                <div *ngIf="isLoading()" class="space-y-4">
+                    <app-loading-skeleton *ngFor="let i of [1,2,3]" width="100%" height="72px"
+                        borderRadius="1.5rem"></app-loading-skeleton>
+                </div>
+
+                <ng-container *ngIf="!isLoading()">
+                    <div *ngFor="let leave of pendingLeaves()"
+                        class="flex items-center justify-between p-5 bg-slate-50/50 rounded-[1.5rem] border border-transparent hover:border-slate-100 hover:bg-white transition-all group cursor-pointer"
+                        [routerLink]="['/leave']">
                         <div class="flex items-center gap-5">
                             <div
-                                class="w-14 h-14 bg-white rounded-[20px] flex items-center justify-center text-primary-600 font-black text-lg border border-slate-200 group-hover:bg-primary-600 group-hover:text-white group-hover:border-primary-600 transition-all shadow-sm">
-                                {{ emp.initials }}
+                                class="w-12 h-12 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-primary-600 group-hover:border-primary-100 transition-all">
+                                <mat-icon>assignment</mat-icon>
                             </div>
                             <div>
-                                <p
-                                    class="font-bold text-slate-900 text-lg group-hover:text-primary-700 transition-colors">
-                                    {{ emp.name }}</p>
-                                <p class="text-sm font-semibold text-slate-500 opacity-80">{{ emp.designation }} • {{
-                                    emp.dept }}</p>
+                                <p class="font-bold text-slate-900">Leave Request: {{ leave.name }}</p>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">{{ leave.type
+                                    }} • {{ leave.days }} Days</p>
                             </div>
                         </div>
-                        <div class="text-right">
-                            <p class="text-sm font-bold text-slate-600 mb-2">{{ emp.joinedDate | date:'mediumDate' }}
-                            </p>
-                            <app-status-chip label="Active" type="success"></app-status-chip>
-                        </div>
+                        <button mat-icon-button class="text-slate-300 group-hover:text-primary-600 transition-colors">
+                            <mat-icon>arrow_forward</mat-icon>
+                        </button>
                     </div>
 
-                    <app-empty-state *ngIf="recentEmployees().length === 0" icon="people_outline"
-                        title="No Recent Onboardings"
-                        description="New employees will appear here once they join the team.">
+                    <app-empty-state *ngIf="pendingLeaves().length === 0" icon="verified" title="All Caught Up!"
+                        description="There are no pending leave requests or tasks requiring your approval.">
                     </app-empty-state>
                 </ng-container>
-
-                <ng-template #employeeSkeletons>
-                    <div *ngFor="let i of [1,2,3]"
-                        class="flex items-center justify-between p-5 bg-slate-50/50 rounded-2xl border border-transparent">
-                        <div class="flex items-center gap-5">
-                            <app-loading-skeleton width="56px" height="56px" borderRadius="20px"></app-loading-skeleton>
-                            <div class="space-y-2">
-                                <app-loading-skeleton width="140px" height="18px"></app-loading-skeleton>
-                                <app-loading-skeleton width="100px" height="12px"></app-loading-skeleton>
-                            </div>
-                        </div>
-                        <div class="text-right space-y-2">
-                            <app-loading-skeleton width="80px" height="14px"></app-loading-skeleton>
-                            <app-loading-skeleton width="60px" height="20px" borderRadius="10px"></app-loading-skeleton>
-                        </div>
-                    </div>
-                </ng-template>
             </div>
         </mat-card>
 
-        <!-- Upcoming Leaves -->
-        <mat-card class="p-8 border-0 shadow-sm flex flex-col">
-            <h3 class="text-xl font-bold text-slate-900 mb-8 flex items-center gap-2">
-                <mat-icon class="text-accent-700">event_note</mat-icon>
-                Upcoming Leaves
-            </h3>
-
-            <div class="space-y-6 flex-1">
-                <ng-container *ngIf="!leavesLoading(); else leaveSkeletons">
-                    <div *ngFor="let leave of upcomingLeaves()"
-                        class="flex items-center gap-5 group p-2 rounded-2xl hover:bg-accent-50/30 transition-colors">
-                        <div
-                            class="flex flex-col items-center justify-center w-16 h-16 bg-white shadow-sm text-accent-700 rounded-2xl border border-accent-100 group-hover:scale-105 transition-transform">
-                            <span class="text-[10px] font-black uppercase tracking-wider opacity-60">{{ leave.date |
-                                date:'MMM' }}</span>
-                            <span class="text-xl font-black leading-tight">{{ leave.date | date:'dd' }}</span>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="font-bold text-slate-900 truncate text-lg">{{ leave.name }}</p>
-                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">{{ leave.type }}</p>
-                        </div>
+        <!-- Payroll Status -->
+        <mat-card
+            class="p-8 border-0 shadow-sm rounded-[2.5rem] !bg-slate-900 text-white overflow-hidden relative group">
+            <div class="relative z-10 h-full flex flex-col">
+                <h3 class="text-xl font-black text-white mb-8 flex items-center gap-3 uppercase tracking-tighter">
+                    <div class="w-10 h-10 rounded-xl bg-white/10 text-primary-400 flex items-center justify-center">
+                        <mat-icon class="!text-[20px]">payments</mat-icon>
                     </div>
+                    Payroll Status
+                </h3>
 
-                    <app-empty-state *ngIf="upcomingLeaves().length === 0" icon="event_busy" title="Quiet Times Ahead"
-                        description="No team members have upcoming leaves scheduled.">
-                    </app-empty-state>
-                </ng-container>
-
-                <ng-template #leaveSkeletons>
-                    <div *ngFor="let i of [1,2,3,4]" class="flex items-center gap-5 p-2">
-                        <app-loading-skeleton width="64px" height="64px" borderRadius="16px"></app-loading-skeleton>
-                        <div class="flex-1 space-y-2">
-                            <app-loading-skeleton width="120px" height="18px"></app-loading-skeleton>
-                            <app-loading-skeleton width="80px" height="12px"></app-loading-skeleton>
-                        </div>
+                <div class="flex-1 flex flex-col justify-center items-center text-center py-6">
+                    <div
+                        [class]="'w-24 h-24 rounded-[2rem] flex items-center justify-center mb-6 shadow-2xl ' + (payrollStatus() === 'Processed' || payrollStatus() === 'Paid' ? 'bg-emerald-500 shadow-emerald-500/20' : 'bg-orange-500 shadow-orange-500/20')">
+                        <mat-icon class="!w-12 !h-12 !text-[48px]">{{ (payrollStatus() === 'Processed' ||
+                            payrollStatus() === 'Paid') ? 'verified'
+                            : 'pending_actions' }}</mat-icon>
                     </div>
-                </ng-template>
+                    <p class="text-2xl font-black mb-2 text-white">{{ payrollStatus() }}</p>
+                    <p class="text-slate-300 font-medium text-sm max-w-[200px]">Payroll status for {{ today | date:'MMMM
+                        y' }}</p>
+                </div>
+
+                <button mat-flat-button color="primary"
+                    class="w-full h-14 rounded-2xl font-bold uppercase tracking-widest mt-8" routerLink="/payroll">
+                    Go to Payroll
+                </button>
             </div>
+
+            <div class="absolute -right-16 -top-16 w-48 h-48 bg-primary-500/10 rounded-full blur-3xl"></div>
         </mat-card>
     </div>
 </div>

@@ -1,26 +1,28 @@
 <div class="min-h-screen flex items-center justify-center p-6 bg-slate-50 relative overflow-hidden">
-    <!-- Subtle background pattern -->
-    <div class="absolute inset-0 opacity-[0.03] pointer-events-none"
-        style="background-image: radial-gradient(#6366f1 1px, transparent 1px); background-size: 32px 32px;"></div>
+    <!-- Enhanced background pattern and gradient -->
+    <div class="absolute inset-0 bg-gradient-to-br from-primary-50/40 via-transparent to-primary-50/20"></div>
+    <div class="absolute inset-0 opacity-[0.08] pointer-events-none"
+        style="background-image: radial-gradient(#1e293b 0.5px, transparent 0.5px); background-size: 32px 32px;"></div>
 
     <div class="w-full max-w-md animate-slide-up relative z-10">
-        <mat-card class="p-10 border-0 shadow-2xl rounded-3xl">
+        <mat-card class="p-6 sm:p-10 border-0 login-card rounded-[2.5rem] bg-white backdrop-blur-sm">
             <div class="text-center mb-10">
                 <div
-                    class="w-20 h-20 bg-primary-600 rounded-2xl flex items-center justify-center text-white mx-auto shadow-xl shadow-primary-200 mb-8">
+                    class="w-20 h-20 bg-primary-500 rounded-3xl flex items-center justify-center text-white mx-auto shadow-2xl shadow-primary-500/20 mb-8 transform hover:rotate-6 transition-transform animate-bounce-subtle">
                     <mat-icon class="text-4xl w-10 h-10 leading-none">corporate_fare</mat-icon>
                 </div>
-                <h1 class="text-3xl font-black text-slate-900 tracking-tight">HRMS</h1>
-                <p class="text-slate-500 mt-2 font-medium">Sign in to your workplace portal</p>
+                <h1 class="text-4xl font-black text-slate-900 tracking-tighter">Welcome Back</h1>
+                <p class="text-slate-500 mt-3 font-medium text-lg">Sign in to your dashboard</p>
             </div>
 
             <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
                 <!-- Email Field -->
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
+                    <label class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Email
+                        Address</label>
                     <mat-form-field appearance="outline" class="w-full">
                         <mat-icon matPrefix class="mr-2 text-slate-400">mail_outline</mat-icon>
-                        <input matInput formControlName="email" type="email" placeholder="name@company.com"
+                        <input matInput formControlName="email" type="email" placeholder="Enter your email"
                             autocomplete="email">
                         <mat-error *ngIf="loginForm.get('email')?.hasError('required')">Email is required</mat-error>
                         <mat-error *ngIf="loginForm.get('email')?.hasError('email')">Invalid email address</mat-error>
@@ -30,15 +32,16 @@
                 <!-- Password Field -->
                 <div class="space-y-2">
                     <div class="flex items-center justify-between px-1">
-                        <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">Password</label>
+                        <label class="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Password</label>
                         <a routerLink="/forgot-password"
-                            class="text-xs font-bold text-primary-600 hover:underline">Forgot?</a>
+                            class="text-sm font-black text-secondary-600 hover:text-secondary-700 hover:underline transition-all uppercase tracking-widest">Forgot?</a>
                     </div>
                     <mat-form-field appearance="outline" class="w-full">
                         <mat-icon matPrefix class="mr-2 text-slate-400">lock_outline</mat-icon>
                         <input matInput formControlName="password" [type]="hidePassword() ? 'password' : 'text'"
-                            placeholder="••••••••" autocomplete="current-password">
-                        <button type="button" mat-icon-button matSuffix (click)="togglePassword()">
+                            placeholder="Enter your password" autocomplete="current-password">
+                        <button type="button" mat-icon-button matSuffix (click)="togglePassword()"
+                            [matTooltip]="hidePassword() ? 'Show password' : 'Hide password'">
                             <mat-icon class="text-slate-400">{{ hidePassword() ? 'visibility_off' : 'visibility'
                                 }}</mat-icon>
                         </button>
@@ -47,39 +50,64 @@
                     </mat-form-field>
                 </div>
 
-                <!-- Feedback Banners -->
-                <div *ngIf="error()"
-                    class="p-4 bg-red-50 text-red-700 rounded-2xl text-sm font-bold flex items-center gap-3 border border-red-100 animate-shake">
-                    <mat-icon class="text-red-500">error_outline</mat-icon>
-                    <span>{{ error() }}</span>
+                <!-- Remember Me -->
+                <div class="flex items-center justify-between px-1">
+                    <mat-checkbox formControlName="rememberMe" color="primary">
+                        <span class="text-sm font-bold text-slate-600">Remember me</span>
+                    </mat-checkbox>
                 </div>
 
-                <div *ngIf="success()"
-                    class="p-4 bg-green-50 text-green-700 rounded-2xl text-sm font-bold flex items-center gap-3 border border-green-100 animate-fade-in">
-                    <mat-icon class="text-green-500">check_circle_outline</mat-icon>
-                    <span>{{ success() }}</span>
+                <!-- Feedback Banners -->
+                <div class="min-h-[4rem] flex flex-col justify-center" aria-live="polite">
+                    <div *ngIf="error()"
+                        class="p-4 bg-red-50 text-red-700 rounded-2xl text-sm font-bold flex items-center gap-3 border border-red-100 animate-shake">
+                        <mat-icon class="text-red-500">error_outline</mat-icon>
+                        <span>{{ error() }}</span>
+                    </div>
+
+                    <div *ngIf="success()"
+                        class="p-4 bg-green-50 text-green-700 rounded-2xl text-sm font-bold flex items-center gap-3 border border-green-100 animate-fade-in">
+                        <mat-icon class="text-green-500">check_circle_outline</mat-icon>
+                        <span>{{ success() }}</span>
+                    </div>
                 </div>
 
                 <!-- Submit Button -->
                 <button mat-flat-button color="primary" type="submit" [disabled]="loginForm.invalid || isLoading()"
-                    class="w-full h-14 rounded-2xl shadow-lg shadow-primary-200 mt-6 font-bold text-lg overflow-hidden relative">
-                    <span *ngIf="!isLoading()" class="flex items-center justify-center gap-2">
+                    class="w-full h-16 rounded-[1.25rem] mt-6 font-black text-xl overflow-hidden relative group login-button">
+                    <span *ngIf="!isLoading()"
+                        class="flex items-center justify-center gap-3 transition-transform group-hover:scale-105">
                         Sign In
-                        <mat-icon>arrow_forward</mat-icon>
+                        <mat-icon class="group-hover:translate-x-1 transition-transform">east</mat-icon>
                     </span>
-                    <span *ngIf="isLoading()" class="flex items-center justify-center gap-2">
-                        <span class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                    <span *ngIf="isLoading()" class="flex items-center justify-center gap-3">
+                        <span class="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin"></span>
                         Authenticating...
                     </span>
                 </button>
             </form>
 
-            <div class="mt-10 text-center">
+            <div class="mt-12 text-center pt-8 border-t border-slate-50">
                 <p class="text-slate-500 text-sm font-medium">
                     New employee?
-                    <a href="mailto:hr@company.com" class="text-primary-600 font-bold hover:underline">Contact HR</a>
+                    <a href="mailto:hr@company.com?subject=New%20Employee%20Inquiry"
+                        class="text-secondary-600 font-black hover:text-secondary-700 transition-colors uppercase tracking-[0.1em] ml-1">Contact
+                        HR</a>
                 </p>
             </div>
         </mat-card>
+
+        <!-- Footer Links -->
+        <div class="flex items-center justify-center flex-wrap gap-4 sm:gap-8 mt-10">
+            <a routerLink="/privacy"
+                class="text-slate-500 hover:text-slate-700 text-[10px] font-black uppercase tracking-[0.2em] transition-colors">Privacy
+                Policy</a>
+            <a routerLink="/terms"
+                class="text-slate-500 hover:text-slate-700 text-[10px] font-black uppercase tracking-[0.2em] transition-colors">Terms
+                of Service</a>
+            <a routerLink="/help"
+                class="text-slate-500 hover:text-slate-700 text-[10px] font-black uppercase tracking-[0.2em] transition-colors">Help
+                Center</a>
+        </div>
     </div>
 </div>

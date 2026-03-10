@@ -5,12 +5,23 @@
 @tailwind utilities;
 
 :root {
-  --primary-color: #0ea5e9;
-  --accent-color: #8b5cf6;
+  --primary-color: #f6ae40;
+  --primary-hover: #dd9c39;
+  --secondary-color: #3167d1;
+  --secondary-hover: #2c5cbc;
+  --bg-color: #f1f5f9;
+  --text-main: #1e293b;
+  --card-bg: #ffffff;
 }
 
 body {
-  @apply font-sans antialiased bg-slate-50 text-slate-900;
+  @apply font-sans antialiased bg-[#f1f5f9] text-[#1e293b];
+  margin: 0;
+}
+
+/* Enhanced shadows */
+.shadow-premium {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
 }
 
 /* Custom transitions */
@@ -20,5 +31,246 @@ body {
 
 /* Glassmorphism utility */
 .glass {
-  @apply bg-white/70 backdrop-blur-md border border-white/20;
+  @apply bg-white/80 backdrop-blur-xl border border-white/20;
+}
+
+/* ===== Global Angular Material Form Field Styles ===== */
+
+/* Wrapper — rounded, subtle background, inner shadow */
+.mat-mdc-form-field-appearance-outline .mat-mdc-text-field-wrapper {
+  background-color: #f8fafc;
+  border-radius: 14px !important;
+  padding: 0 14px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: background-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* Hover state */
+.mat-mdc-form-field-appearance-outline:hover .mat-mdc-text-field-wrapper {
+  background-color: #f1f5f9;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+/* Focus state — white bg, subtle primary ring */
+.mat-mdc-form-field-appearance-outline.mat-focused .mat-mdc-text-field-wrapper {
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(var(--mat-sys-primary-rgb, 59, 130, 246), 0.08),
+    inset 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+/* Outline borders — softer default color, rounded */
+.mat-mdc-form-field-appearance-outline .mdc-notched-outline__leading {
+  border-color: #e2e8f0 !important;
+  border-top-left-radius: 14px !important;
+  border-bottom-left-radius: 14px !important;
+}
+
+.mat-mdc-form-field-appearance-outline .mdc-notched-outline__notch {
+  border-color: #e2e8f0 !important;
+}
+
+.mat-mdc-form-field-appearance-outline .mdc-notched-outline__trailing {
+  border-color: #e2e8f0 !important;
+  border-top-right-radius: 14px !important;
+  border-bottom-right-radius: 14px !important;
+}
+
+/* Focus outline — uses primary color */
+.mat-mdc-form-field-appearance-outline.mat-focused .mdc-notched-outline__leading,
+.mat-mdc-form-field-appearance-outline.mat-focused .mdc-notched-outline__notch,
+.mat-mdc-form-field-appearance-outline.mat-focused .mdc-notched-outline__trailing {
+  border-color: var(--primary-color) !important;
+  border-width: 2px !important;
+}
+
+/* Hover outline — slightly darker border */
+.mat-mdc-form-field-appearance-outline:hover .mdc-notched-outline__leading,
+.mat-mdc-form-field-appearance-outline:hover .mdc-notched-outline__notch,
+.mat-mdc-form-field-appearance-outline:hover .mdc-notched-outline__trailing {
+  border-color: #cbd5e1 !important;
+}
+
+/* Label — better font weight & spacing */
+.mat-mdc-form-field .mat-mdc-floating-label {
+  font-weight: 500 !important;
+  letter-spacing: 0.01em;
+  color: #64748b !important;
+}
+
+/* Focused label — primary accent color */
+.mat-mdc-form-field.mat-focused .mat-mdc-floating-label {
+  color: var(--primary-color) !important;
+  font-weight: 600 !important;
+}
+
+/* Input text — crisp typography */
+.mat-mdc-form-field .mat-mdc-input-element,
+.mat-mdc-form-field .mat-mdc-select-value-text {
+  font-weight: 500;
+  color: #1e293b;
+  font-size: 0.9375rem;
+}
+
+/* Placeholder — lighter & italic hint */
+.mat-mdc-form-field .mat-mdc-input-element::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+/* Prefix icon colors */
+.mat-mdc-form-field .mat-mdc-form-field-icon-prefix mat-icon,
+.mat-mdc-form-field [matprefix] {
+  color: #94a3b8 !important;
+  transition: color 0.2s ease;
+}
+
+.mat-mdc-form-field.mat-focused .mat-mdc-form-field-icon-prefix mat-icon,
+.mat-mdc-form-field.mat-focused [matprefix] {
+  color: var(--primary-color) !important;
+}
+
+/* Suffix icon colors (datepicker toggle, etc.) */
+.mat-mdc-form-field .mat-mdc-form-field-icon-suffix mat-icon,
+.mat-mdc-form-field [matsuffix] mat-icon {
+  color: #94a3b8 !important;
+  transition: color 0.2s ease;
+}
+
+.mat-mdc-form-field.mat-focused .mat-mdc-form-field-icon-suffix mat-icon,
+.mat-mdc-form-field.mat-focused [matsuffix] mat-icon {
+  color: var(--primary-color) !important;
+}
+
+/* Error state — red tint */
+.mat-mdc-form-field-appearance-outline.mat-form-field-invalid .mat-mdc-text-field-wrapper {
+  background-color: #fef2f2;
+  box-shadow: inset 0 1px 3px rgba(239, 68, 68, 0.06);
+}
+
+.mat-mdc-form-field-appearance-outline.mat-form-field-invalid .mdc-notched-outline__leading,
+.mat-mdc-form-field-appearance-outline.mat-form-field-invalid .mdc-notched-outline__notch,
+.mat-mdc-form-field-appearance-outline.mat-form-field-invalid .mdc-notched-outline__trailing {
+  border-color: #fca5a5 !important;
+}
+
+/* Subscript area (hint / error text) — tighter spacing */
+.mat-mdc-form-field .mat-mdc-form-field-subscript-wrapper {
+  padding: 0 4px;
+  margin-top: 2px;
+}
+
+/* Select dropdown panel — rounded and elevated */
+.mat-mdc-select-panel {
+  border-radius: 14px !important;
+  box-shadow: 0 10px 40px -8px rgba(0, 0, 0, 0.12),
+    0 4px 12px -2px rgba(0, 0, 0, 0.06) !important;
+  border: 1px solid #f1f5f9 !important;
+  padding: 6px !important;
+}
+
+/* Select options — rounded hover */
+.mat-mdc-option {
+  border-radius: 10px !important;
+  margin: 2px 0 !important;
+  font-weight: 500 !important;
+  transition: background-color 0.15s ease !important;
+}
+
+.mat-mdc-option:hover {
+  background-color: #f8fafc !important;
+}
+
+.mat-mdc-option.mat-mdc-option-active,
+.mat-mdc-option.mdc-list-item--selected {
+  background-color: #fef3c7 !important;
+  color: #92400e !important;
+  font-weight: 600 !important;
+}
+
+/* Datepicker toggle — round button */
+.mat-datepicker-toggle .mat-mdc-icon-button {
+  color: #94a3b8;
+  transition: color 0.2s ease;
+}
+
+.mat-mdc-form-field.mat-focused .mat-datepicker-toggle .mat-mdc-icon-button {
+  color: var(--primary-color);
+}
+
+/* Dialog form fields — slightly tighter on dialogs */
+.mat-mdc-dialog-container .mat-mdc-form-field {
+  margin-bottom: 4px;
+}
+
+/* ===== Datepicker Overlay & Calendar Styling ===== */
+
+/* Ensure datepicker overlays render above dialog content */
+.cdk-overlay-container {
+  z-index: 1050 !important;
+}
+
+/* Calendar panel — rounded, elevated, consistent with design */
+.mat-datepicker-content {
+  border-radius: 20px !important;
+  box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.15),
+    0 8px 20px -5px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid #f1f5f9 !important;
+  overflow: hidden;
+}
+
+/* Calendar cells — clear borders and spacing */
+.mat-calendar-body-cell {
+  border-radius: 12px !important;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* Hover state */
+.mat-calendar-body-cell:hover .mat-calendar-body-cell-content {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Selected date — primary accent */
+.mat-calendar-body-selected {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(246, 174, 64, 0.3);
+}
+
+/* Today indicator */
+.mat-calendar-body-today:not(.mat-calendar-body-selected) {
+  border-color: var(--primary-color) !important;
+  border-width: 2px;
+}
+
+/* Calendar navigation arrows */
+.mat-calendar-previous-button,
+.mat-calendar-next-button {
+  color: #64748b !important;
+  transition: color 0.2s ease;
+}
+
+.mat-calendar-previous-button:hover,
+.mat-calendar-next-button:hover {
+  color: var(--primary-color) !important;
+}
+
+/* Calendar header period label */
+.mat-calendar-period-button {
+  font-weight: 700 !important;
+  color: #1e293b !important;
+}
+
+/* ===== Reusable Form Section Title ===== */
+.form-section-title {
+  font-size: 10px;
+  font-weight: 900;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
 }

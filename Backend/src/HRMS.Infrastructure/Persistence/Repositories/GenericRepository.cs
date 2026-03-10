@@ -42,9 +42,19 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
         return await _dbSet.AnyAsync(predicate);
     }
 
+    public async Task<int> CountAsync()
+    {
+        return await _dbSet.CountAsync();
+    }
+
     public async Task<int> CountAsync(Expression<Func<T, bool>> predicate)
     {
         return await _dbSet.CountAsync(predicate);
+    }
+
+    public IQueryable<T> GetAllQueryable()
+    {
+        return _dbSet.AsQueryable();
     }
 
     public async Task<T> AddAsync(T entity)

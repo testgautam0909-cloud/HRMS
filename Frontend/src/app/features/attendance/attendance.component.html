@@ -18,6 +18,7 @@
                     date:'EEEE, MMM d, y' }}</p>
 
                 <div class="w-full space-y-4 relative z-10">
+                    <!-- State 1: Not checked in (or checked out already) -->
                     <button mat-flat-button color="primary" *ngIf="!isCheckedIn()" (click)="checkIn()"
                         [disabled]="isLoading()"
                         class="w-full !h-16 !rounded-2xl !shadow-xl !shadow-primary-600/20 !font-black !text-lg transition-all active:scale-95">
@@ -25,12 +26,20 @@
                         CHECK IN
                     </button>
 
+                    <!-- State 2: Checked in, can check out -->
                     <button mat-flat-button color="warn" *ngIf="isCheckedIn()" (click)="checkOut()"
                         [disabled]="isLoading()"
                         class="w-full !h-16 !rounded-2xl !shadow-xl !shadow-red-600/20 !font-black !text-lg !bg-slate-900 !text-white hover:!bg-black transition-all active:scale-95">
                         <mat-icon class="mr-2">stop</mat-icon>
                         CHECK OUT
                     </button>
+
+                    <!-- Visual indicator for multiple punch sessions if no open session -->
+                    <div *ngIf="!isCheckedIn() && lastActionTime()"
+                        class="mt-4 flex items-center justify-center gap-2 text-green-600 font-bold text-xs uppercase tracking-widest">
+                        <mat-icon class="text-xs w-4 h-4">check_circle</mat-icon>
+                        Shift Session Completed
+                    </div>
                 </div>
 
                 <div *ngIf="lastActionTime()" class="mt-8 flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl">
@@ -43,7 +52,7 @@
             </mat-card>
 
             <mat-card
-                class="bg-slate-900 text-white p-8 rounded-3xl border-0 shadow-lg relative overflow-hidden text-left">
+                class="!bg-slate-900 text-white p-8 rounded-3xl border-0 shadow-lg relative overflow-hidden text-left">
                 <div class="flex items-center gap-4 mb-4">
                     <div
                         class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center border border-white/10">

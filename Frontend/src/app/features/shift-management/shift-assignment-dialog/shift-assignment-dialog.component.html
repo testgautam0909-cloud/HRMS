@@ -1,0 +1,84 @@
+<div class="premium-dialog-container">
+    <div mat-dialog-title class="!flex !items-center !gap-4 !p-6 !mb-0 border-b border-slate-100 bg-slate-50/50">
+        <div
+            class="w-12 h-12 rounded-2xl bg-primary-600 flex items-center justify-center text-white shadow-xl shadow-primary-900/20">
+            <mat-icon class="!text-2xl">assignment_ind</mat-icon>
+        </div>
+        <div>
+            <h2 class="!m-0 !text-xl !font-black !text-slate-900 !leading-tight">Assign Duty Shift</h2>
+            <p class="!m-0 !text-[10px] !font-bold !text-slate-400 !uppercase !tracking-widest">Employee Roster
+                Management</p>
+        </div>
+    </div>
+
+    <mat-dialog-content class="!p-8 !mt-2">
+        <form [formGroup]="assignForm" class="flex flex-col gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <mat-form-field appearance="outline" class="w-full h-[85px]">
+                    <mat-label>Target Employee</mat-label>
+                    <mat-icon matPrefix class="text-slate-400 mr-2">person</mat-icon>
+                    <mat-select formControlName="employeeId" placeholder="Select staff member">
+                        <mat-option class="!bg-white" *ngFor="let emp of employees()" [value]="emp.id">
+                            <div class="flex items-center py-1">
+                                <div
+                                    class="w-10 h-10 rounded-xl flex items-center justify-center text-[11px] font-black text-slate-700 uppercase border border-white shadow-sm">
+                                    {{ getInitials(emp.fullName) }}
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="font-bold text-slate-800 leading-none">{{ emp.fullName
+                                        }}</span>
+                                    <span class="text-[10px] text-slate-400 uppercase tracking-tighter mt-1">{{
+                                        emp.employeeCode }}</span>
+                                </div>
+                            </div>
+                        </mat-option>
+                    </mat-select>
+                    <mat-hint class="!text-[9px] !font-medium">Search by name or code</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="w-full h-[85px]">
+                    <mat-label>Shift Pattern</mat-label>
+                    <mat-icon matPrefix class="text-slate-400 mr-2">timelapse</mat-icon>
+                    <mat-select formControlName="shiftId" placeholder="Choose a shift">
+                        <mat-option class="!bg-white" *ngFor="let shift of shifts" [value]="shift.id">
+                            <div class="flex flex-col py-1">
+                                <span class="font-bold text-slate-700 leading-none">{{ shift.name }}</span>
+                                <span class="text-[10px] text-slate-400 mt-1">{{ shift.startTime }} - {{ shift.endTime
+                                    }}</span>
+                            </div>
+                        </mat-option>
+                    </mat-select>
+                    <mat-hint class="!text-[9px] !font-medium">Global hours definition</mat-hint>
+                </mat-form-field>
+            </div>
+
+            <mat-form-field appearance="outline" class="w-full h-[85px]">
+                <mat-label>Effective Date</mat-label>
+                <mat-icon matPrefix class="text-slate-400 mr-2">calendar_today</mat-icon>
+                <input matInput [matDatepicker]="picker" formControlName="assignmentDate"
+                    placeholder="Pick duty start date">
+                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-datepicker #picker></mat-datepicker>
+                <mat-hint class="!text-[9px] !font-medium">Date this assignment becomes operational</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Internal Roster Notes</mat-label>
+                <mat-icon matPrefix class="text-slate-400 mr-2">notes</mat-icon>
+                <textarea matInput formControlName="reason"
+                    placeholder="Any specific instructions for this staff member..." rows="3"></textarea>
+            </mat-form-field>
+        </form>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="end" class="!px-8 !pb-8 !pt-4 gap-3 bg-slate-50/30">
+        <button mat-button mat-dialog-close
+            class="!rounded-2xl !px-8 !py-6 text-slate-500 font-black uppercase tracking-widest text-[10px] hover:bg-slate-100 transition-colors">Discard</button>
+        <button mat-flat-button color="primary"
+            class="!rounded-2xl !px-10 !py-6 shadow-2xl shadow-primary-900/40 font-black uppercase tracking-widest text-[10px] flex items-center gap-2"
+            [disabled]="assignForm.invalid" (click)="onSubmit()">
+            <mat-icon class="!text-sm !w-4 !h-4">verified</mat-icon>
+            Finalize Assignment
+        </button>
+    </mat-dialog-actions>
+</div>

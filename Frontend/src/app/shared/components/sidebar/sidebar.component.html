@@ -19,15 +19,17 @@
         <ng-container *ngFor="let item of navItems">
             <a *ngIf="!item.roles || hasRole(item.roles)" [routerLink]="item.path" [matTooltip]="item.tooltip"
                 matTooltipPosition="right" routerLinkActive="active-link"
-                class="nav-link flex items-center justify-between px-4 py-3.5 rounded-2xl text-slate-500 hover:text-primary-600 hover:bg-primary-50/50 transition-all duration-300 group">
+                class="nav-link flex items-center justify-between px-5 py-4 rounded-2xl text-slate-500 hover:text-secondary-600 hover:bg-slate-50 transition-all duration-300 group">
                 <div class="flex items-center gap-4">
-                    <mat-icon class="group-hover:scale-110 transition-transform text-2xl"
-                        [class.text-primary-600]="router.isActive(item.path, {paths: 'exact', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored'})">{{
-                        item.icon }}</mat-icon>
-                    <span class="font-bold text-sm tracking-tight">{{ item.label }}</span>
+                    <mat-icon
+                        class="nav-icon group-hover:scale-110 transition-transform text-[22px] !w-[22px] !h-[22px]"
+                        [class.text-secondary-500]="router.isActive(item.path, {paths: 'exact', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored'})">
+                        {{ item.icon }}
+                    </mat-icon>
+                    <span class="font-bold text-[13px] tracking-tight">{{ item.label }}</span>
                 </div>
                 <mat-icon
-                    class="text-lg opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all">chevron_right</mat-icon>
+                    class="text-lg opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all !w-4 !h-4 !text-[16px]">chevron_right</mat-icon>
             </a>
         </ng-container>
     </nav>

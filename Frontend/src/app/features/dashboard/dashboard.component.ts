@@ -6,11 +6,11 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ApiResponse } from '../../core/models/api-response.model';
-import { catchError, finalize, of } from 'rxjs';
-
+import { catchError, finalize, forkJoin, of } from 'rxjs';
 import { RouterModule } from '@angular/router';
 import { LoadingSkeletonComponent } from '../../shared/components/loading-skeleton/loading-skeleton.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
@@ -25,10 +25,10 @@ import { StatusChipComponent } from '../../shared/components/status-chip/status-
     MatButtonModule,
     MatIconModule,
     MatDividerModule,
+    MatTooltipModule,
     RouterModule,
     LoadingSkeletonComponent,
     EmptyStateComponent,
-    StatusChipComponent,
     NgChartsModule
   ],
   templateUrl: './dashboard.component.html',
@@ -41,36 +41,46 @@ export class DashboardComponent implements OnInit {
   today = new Date();
   isLoading = signal(true);
 
-  // Per-widget loading states
-  statsLoading = signal(true);
-  employeesLoading = signal(true);
-  leavesLoading = signal(true);
-  payrollLoading = signal(true);
-  attendanceLoading = signal(true);
+  // Stats
+  totalEmployees = signal(0);
+  activeEmployees = signal(0);
+  onLeaveToday = signal(0);
+  avgWorkHours = signal('0');
+  attendanceRate = signal(0);
+  payrollStatus = signal('Pending');
+  pendingLeavesCount = signal(0);
 
-  // Data signals
-  stats = signal<any[]>([]);
+  // Lists
   recentEmployees = signal<any[]>([]);
-  upcomingLeaves = signal<any[]>([]);
+  pendingLeaves = signal<any[]>([]);
 
+  // Charts
   public barChartOptions: ChartConfiguration['options'] = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
       tooltip: {
+        backgroundColor: '#1e293b',
+        titleFont: { size: 12, weight: 'bold' },
+        bodyFont: { size: 11 },
+        cornerRadius: 8,
+        padding: 10,
         callbacks: {
-          label: (context) => `Working Hours: ${context.raw}h`
+          label: (context: any) => `Working Hours: ${context.raw}h`
         }
       }
     },
     scales: {
       y: {
         beginAtZero: true,
-        grid: { display: false },
-        title: { display: true, text: 'Hours', font: { size: 10, weight: 'bold' } }
+        grid: { color: '#f1f5f9' },
+        ticks: { font: { size: 10, weight: 'bold' }, color: '#94a3b8' }
       },
-      x: { grid: { display: false } }
+      x: {
+        grid: { display: false },
+        ticks: { font: { size: 10, weight: 'bold' }, color: '#94a3b8' }
+      }
     }
   };
 
@@ -79,9 +89,9 @@ export class DashboardComponent implements OnInit {
     datasets: [{
       label: 'Hours Worked',
       data: [8, 7.5, 9, 8.5, 8, 4],
-      backgroundColor: '#6366f1',
-      hoverBackgroundColor: '#4f46e5',
-      borderRadius: 10,
+      backgroundColor: '#3167d1',
+      hoverBackgroundColor: '#2c5cbc',
+      borderRadius: 8,
     }]
   };
 
@@ -92,130 +102,130 @@ export class DashboardComponent implements OnInit {
       legend: {
         position: 'bottom',
         labels: {
-          padding: 20,
+          padding: 16,
           usePointStyle: true,
-          font: { size: 11, weight: 'bold' }
+          font: { size: 11, weight: 'bold' },
+          color: '#64748b'
         }
+      },
+      tooltip: {
+        backgroundColor: '#1e293b',
+        cornerRadius: 8,
+        padding: 10,
       }
     }
   };
 
   public pieChartData: ChartConfiguration['data'] = {
-    labels: ['Sick', 'Annual', 'Paternity', 'Other'],
+    labels: ['Sick Leave', 'Annual Leave', 'Casual Leave', 'Other'],
     datasets: [{
       data: [15, 45, 10, 30],
-      backgroundColor: ['#8b5cf6', '#0ea5e9', '#10b981', '#f59e0b'],
-      hoverOffset: 15,
-      borderWidth: 0
+      backgroundColor: ['#f6ae40', '#3167d1', '#28a745', '#17a2b8'],
+      hoverOffset: 10,
+      borderWidth: 2,
+      borderColor: '#ffffff'
     }]
   };
 
   ngOnInit() {
-    this.loadData();
+    this.loadAllData();
   }
 
-  loadData() {
+  loadAllData() {
+    this.isLoading.set(true);
     const user = this.auth.currentUser();
     const empId = user?.employeeId;
-    this.isLoading.set(false);
-
-    // Load Stats & Summary (Attendance)
-    if (empId && empId !== 'null' && empId !== 'undefined') {
-      this.attendanceLoading.set(true);
-      this.api.get<any>(`attendance/summary/${empId}`, { month: this.today.getMonth() + 1, year: this.today.getFullYear() })
-        .pipe(catchError(() => of({ data: null })), finalize(() => this.attendanceLoading.set(false)))
-        .subscribe(res => {
-          const avgHours = res.data?.averageWorkingHours?.toFixed(1) || '0';
-          this.updateStats('Avg Working Hours', avgHours + 'h', 'schedule', 'bg-green-50 text-green-600');
-        });
-    } else {
-      this.attendanceLoading.set(false);
-    }
 
     // Load Employees
-    this.employeesLoading.set(true);
     this.api.get<any>('employee', { pageNumber: 1, pageSize: 5 })
-      .pipe(
-        catchError(() => of({ success: false, data: { data: [], pagination: { totalCount: 0 } }, message: '', errors: [] } as ApiResponse<any>)),
-        finalize(() => this.employeesLoading.set(false))
-      )
+      .pipe(catchError(() => of({ success: false, data: { data: [], pagination: { totalCount: 0 } } } as any)))
       .subscribe(res => {
         const data = res.data?.data || [];
         this.recentEmployees.set(data.map((e: any) => ({
           id: e.id,
-          initials: e.firstName[0] + e.lastName[0],
-          name: e.firstName + ' ' + e.lastName,
-          designation: e.designationName,
-          dept: e.departmentName,
-          joinedDate: new Date(e.joiningDate)
+          initials: (e.firstName?.[0] || '') + (e.lastName?.[0] || ''),
+          name: (e.firstName || '') + ' ' + (e.lastName || ''),
+          designation: e.designationName || 'N/A',
+          dept: e.departmentName || 'N/A',
+          joinedDate: e.joiningDate ? new Date(e.joiningDate) : null,
+          profilePicture: e.profilePictureUrl
         })));
-        this.updateStats('Total Employees', res.data?.pagination?.totalCount || 0, 'group', 'bg-primary-50 text-primary-600');
+        this.totalEmployees.set(res.data?.pagination?.totalCount || data.length || 0);
+        this.activeEmployees.set(res.data?.pagination?.totalCount || data.length || 0);
       });
 
-    // Load Payroll
-    this.payrollLoading.set(true);
-    const payrollObs = this.auth.hasRole('Admin') || this.auth.hasRole('HR')
-      ? this.api.get<any>('payroll/summary', { month: this.today.getMonth() + 1, year: this.today.getFullYear() })
-      : this.api.get<any>(`payroll/employee/${empId}`, { month: this.today.getMonth() + 1, year: this.today.getFullYear() });
-
-    payrollObs.pipe(
-      catchError(() => of({ success: false, data: null, message: '', errors: [] } as ApiResponse<any>)),
-      finalize(() => this.payrollLoading.set(false))
-    )
-      .subscribe(res => {
-        const val = this.auth.hasRole('Admin') || this.auth.hasRole('HR')
-          ? (res.data?.totalAmount ? 'Processed' : 'Pending')
-          : (res.data ? 'Paid' : 'Pending');
-        this.updateStats('Payroll Status', val, 'verified', 'bg-blue-50 text-blue-600');
-      });
-
-    // Load Leaves & Balances
-    this.leavesLoading.set(true);
+    // Load Pending Leaves
     this.api.get<any>('leave', { status: 1, pageSize: 5 })
-      .pipe(
-        catchError(() => of({ success: false, data: { data: [], pagination: { totalCount: 0 } }, message: '', errors: [] } as ApiResponse<any>)),
-        finalize(() => this.leavesLoading.set(false))
-      )
+      .pipe(catchError(() => of({ success: false, data: { data: [], pagination: { totalCount: 0 } } } as any)))
       .subscribe(res => {
         const data = res.data?.data || [];
-        this.upcomingLeaves.set(data.map((l: any) => ({
-          name: l.employeeName,
-          type: l.leaveTypeName,
-          days: l.days,
-          date: new Date(l.startDate)
+        this.pendingLeaves.set(data.map((l: any) => ({
+          id: l.id,
+          name: l.employeeName || 'Unknown',
+          type: l.leaveTypeName || 'Leave',
+          days: l.days || 0,
+          date: l.startDate ? new Date(l.startDate) : new Date()
         })));
-        this.updateStats('On Leave Today', res.data?.pagination?.totalCount || 0, 'event', 'bg-accent-50 text-accent-700');
+        this.pendingLeavesCount.set(res.data?.pagination?.totalCount || data.length || 0);
+        this.onLeaveToday.set(res.data?.pagination?.totalCount || 0);
       });
 
+    // Load Attendance Summary
     if (empId && empId !== 'null' && empId !== 'undefined') {
+      this.api.get<any>(`attendance/summary/${empId}`, {
+        month: this.today.getMonth() + 1,
+        year: this.today.getFullYear()
+      })
+        .pipe(catchError(() => of({ data: null })))
+        .subscribe(res => {
+          if (res.data) {
+            const avg = res.data.averageWorkingHours?.toFixed(1) || '0';
+            this.avgWorkHours.set(avg);
+            const totalPresent = res.data.totalPresent || 0;
+            const totalDays = res.data.totalWorkingDays || 1;
+            this.attendanceRate.set(Math.round((totalPresent / totalDays) * 100));
+          }
+        });
+
+      // Load Leave Balances for Pie Chart
       this.api.get<any[]>(`leave/balance/${empId}`, { year: this.today.getFullYear() })
         .pipe(catchError(() => of({ data: [] })))
         .subscribe(res => {
-          if (res.data) {
+          if (res.data && Array.isArray(res.data) && res.data.length > 0) {
             const balances = res.data;
             this.pieChartData = {
-              labels: balances.map((b: any) => b.leaveTypeName),
+              labels: balances.map((b: any) => b.leaveTypeName || 'Leave'),
               datasets: [{
-                data: balances.map((b: any) => b.remainingDays),
-                backgroundColor: ['#8b5cf6', '#0ea5e9', '#10b981', '#f59e0b', '#ec4899'],
-                borderWidth: 0
+                data: balances.map((b: any) => b.remainingDays || 0),
+                backgroundColor: ['#f6ae40', '#3167d1', '#28a745', '#dc3545', '#17a2b8', '#6366f1'],
+                hoverOffset: 10,
+                borderWidth: 2,
+                borderColor: '#ffffff'
               }]
             };
           }
         });
     }
-  }
 
-  private updateStats(label: string, value: any, icon: string, colorClass: string) {
-    const current = this.stats();
-    const index = current.findIndex(s => s.label === label);
-    const newItem = { label, value, trend: 0, icon, colorClass };
+    // Load Payroll Status
+    const isAdmin = this.auth.hasRole('Admin') || this.auth.hasRole('HR');
+    const payrollObs = isAdmin
+      ? this.api.get<any>('payroll/summary', { month: this.today.getMonth() + 1, year: this.today.getFullYear() })
+      : (empId && empId !== 'null')
+        ? this.api.get<any>(`payroll/employee/${empId}`, { month: this.today.getMonth() + 1, year: this.today.getFullYear() })
+        : of({ success: false, data: null } as any);
 
-    if (index >= 0) {
-      current[index] = newItem;
-      this.stats.set([...current]);
-    } else {
-      this.stats.set([...current, newItem]);
-    }
+    payrollObs
+      .pipe(catchError(() => of({ success: false, data: null } as any)))
+      .subscribe(res => {
+        if (isAdmin) {
+          this.payrollStatus.set(res.data?.totalAmount ? 'Processed' : 'Pending');
+        } else {
+          this.payrollStatus.set(res.data ? 'Paid' : 'Pending');
+        }
+      });
+
+    // Set loading to false after a short delay to ensure all calls start
+    setTimeout(() => this.isLoading.set(false), 1200);
   }
 }

@@ -244,4 +244,14 @@ public class ShiftService : IShiftService
 
         return schedule;
     }
+
+    public async Task DeleteShiftAssignmentAsync(Guid id, string performedBy)
+    {
+        var assignment = await _unitOfWork.ShiftAssignments.GetByIdAsync(id);
+        if (assignment == null)
+            throw new NotFoundException("ShiftAssignment", id);
+
+        _unitOfWork.ShiftAssignments.Remove(assignment);
+        await _unitOfWork.SaveChangesAsync();
+    }
 }
