@@ -1,0 +1,94 @@
+<div class="p-6 max-h-[90vh] overflow-y-auto">
+    <button mat-icon-button (click)="onCancel()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 z-10">
+        <mat-icon>close</mat-icon>
+    </button>
+
+    <div class="mb-6">
+        <h2 class="text-xl font-black text-slate-900">{{ data.salary ? 'Update' : 'Set' }} Salary Structure</h2>
+        <p class="text-sm text-slate-500 mt-1">Define the compensation breakdown for this employee.</p>
+    </div>
+
+    <!-- Live Preview -->
+    <div class="grid grid-cols-3 gap-3 mb-6">
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
+            <p class="text-[10px] font-black text-slate-400 uppercase">Gross</p>
+            <p class="text-lg font-black text-slate-900">{{ grossSalary | currency }}</p>
+        </div>
+        <div class="bg-red-50 p-3 rounded-xl border border-red-100 text-center">
+            <p class="text-[10px] font-black text-red-400 uppercase">Deductions</p>
+            <p class="text-lg font-black text-red-600">-{{ totalDeductions | currency }}</p>
+        </div>
+        <div class="bg-green-50 p-3 rounded-xl border border-green-100 text-center">
+            <p class="text-[10px] font-black text-green-600 uppercase">Net Pay</p>
+            <p class="text-lg font-black text-green-700">{{ netSalary | currency }}</p>
+        </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-5">
+        <!-- Allowances -->
+        <div>
+            <h3 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">Earnings</h3>
+            <div class="grid grid-cols-2 gap-4">
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Basic Salary</mat-label>
+                    <input matInput type="number" formControlName="basicSalary">
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>HRA</mat-label>
+                    <input matInput type="number" formControlName="houseRentAllowance">
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Transport Allowance</mat-label>
+                    <input matInput type="number" formControlName="transportAllowance">
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Medical Allowance</mat-label>
+                    <input matInput type="number" formControlName="medicalAllowance">
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Special Allowance</mat-label>
+                    <input matInput type="number" formControlName="specialAllowance">
+                </mat-form-field>
+            </div>
+        </div>
+
+        <!-- Deductions -->
+        <div>
+            <h3 class="text-xs font-black text-red-400 uppercase tracking-widest mb-3 border-b border-slate-100 pb-2">Deductions</h3>
+            <div class="grid grid-cols-2 gap-4">
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Provident Fund</mat-label>
+                    <input matInput type="number" formControlName="providentFund">
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Professional Tax</mat-label>
+                    <input matInput type="number" formControlName="professionalTax">
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Income Tax (TDS)</mat-label>
+                    <input matInput type="number" formControlName="incomeTax">
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Other Deductions</mat-label>
+                    <input matInput type="number" formControlName="otherDeductions">
+                </mat-form-field>
+            </div>
+        </div>
+
+        <!-- Effective Date -->
+        <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Effective Date</mat-label>
+            <input matInput [matDatepicker]="picker" formControlName="effectiveDate">
+            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+
+        <div class="pt-4 flex justify-end gap-3 border-t border-slate-100">
+            <button type="button" mat-stroked-button (click)="onCancel()" [disabled]="isLoading()" class="!rounded-xl !px-6">Cancel</button>
+            <button type="submit" mat-flat-button color="primary" [disabled]="form.invalid || isLoading()" class="!rounded-xl !px-8 font-black">
+                <span *ngIf="!isLoading()">Save Structure</span>
+                <div *ngIf="isLoading()" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            </button>
+        </div>
+    </form>
+</div>

@@ -189,4 +189,10 @@ public class PayrollService : IPayrollService
             TotalPending = list.Count(p => p.Status == PayrollStatus.Generated)
         };
     }
+
+    public async Task<IEnumerable<PayrollResponseDto>> GetEmployeePayrollHistoryAsync(Guid employeeId)
+    {
+        var (items, _) = await _unitOfWork.Payrolls.GetPayrollsPagedAsync(employeeId, null, null, 1, 100);
+        return _mapper.Map<IEnumerable<PayrollResponseDto>>(items);
+    }
 }

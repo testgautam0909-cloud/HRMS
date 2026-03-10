@@ -40,9 +40,16 @@ public class PayrollController : ControllerBase
     }
 
     [HttpGet("employee/{employeeId:guid}")]
-    public async Task<IActionResult> GetByEmployee(Guid employeeId, [FromQuery] int month, [FromQuery] int year)
+    public async Task<IActionResult> GetByEmployee(Guid employeeId, [FromQuery] int? month, [FromQuery] int? year)
     {
-        return Ok(ApiResponse<PayrollResponseDto>.Ok(await _service.GetByEmployeeAndPeriodAsync(employeeId, month, year)));
+        if (month.HasValue && year.HasValue)
+        {
+            var result = await _service.GetByEmployeeAndPeriodAsync(employeeId, month.Value, year.Value);
+            return Ok(ApiResponse<IEnumerable<PayrollResponseDto>>.Ok(new[] { result }));
+        }
+        
+        var history = await _service.GetEmployeePayrollHistoryAsync(employeeId);
+        return Ok(ApiResponse<IEnumerable<PayrollResponseDto>>.Ok(history));
     }
 
     [HttpGet]

@@ -48,6 +48,11 @@ export const routes: Routes = [
                 data: { breadcrumb: 'Payroll' }
             },
             {
+                path: 'payroll-management',
+                loadComponent: () => import('./features/payroll-management/payroll-management.component').then(m => m.PayrollManagementComponent),
+                data: { breadcrumb: 'Payroll Management', roles: ['Admin', 'HR'] }
+            },
+            {
                 path: 'shift',
                 loadComponent: () => import('./features/shift/shift.component').then(m => m.ShiftComponent),
                 data: { breadcrumb: 'My Shift' }

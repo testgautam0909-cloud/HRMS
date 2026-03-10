@@ -12,31 +12,254 @@
   --bg-color: #f1f5f9;
   --text-main: #1e293b;
   --card-bg: #ffffff;
+  --amber: #F59E0B;
+  --amber-light: #FDE68A;
+  --amber-dark: #D97706;
+  --slate-900: #0F172A;
+  --slate-700: #334155;
+  --slate-500: #64748B;
+  --slate-400: #94A3B8;
+  --slate-300: #CBD5E1;
+  --slate-200: #E2E8F0;
+  --slate-100: #F1F5F9;
+  --slate-50: #F8FAFC;
+  --white: #FFFFFF;
+  --red: #EF4444;
+  --red-soft: #FEF2F2;
+  --green: #22C55E;
+  --green-soft: #F0FDF4;
+
+  --radius-xl: 20px;
+  --radius-lg: 14px;
+  --radius-md: 10px;
+
+  --shadow-card: 0 32px 80px -12px rgba(15, 23, 42, .12), 0 8px 24px -4px rgba(15, 23, 42, .06);
+  --shadow-btn: 0 8px 24px -4px rgba(245, 158, 11, .45);
+  --transition: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body {
-  @apply font-sans antialiased bg-[#f1f5f9] text-[#1e293b];
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f1f5f9;
+  color: #1e293b;
   margin: 0;
 }
 
-/* Enhanced shadows */
 .shadow-premium {
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
 }
 
-/* Custom transitions */
 .transition-standard {
-  @apply transition-all duration-300 ease-in-out;
+  transition: all 0.3s ease-in-out;
 }
 
-/* Glassmorphism utility */
-.glass {
-  @apply bg-white/80 backdrop-blur-xl border border-white/20;
+@keyframes drift {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+
+  to {
+    transform: translate(20px, 15px) scale(1.06);
+  }
 }
 
-/* ===== Global Angular Material Form Field Styles ===== */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
 
-/* Wrapper — rounded, subtle background, inner shadow */
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-drift {
+  animation: drift 12s ease-in-out infinite alternate;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.premium-card {
+  background: rgba(255, 255, 255, .97);
+  border-radius: 32px;
+  box-shadow: var(--shadow-card);
+  border: 1px solid rgba(255, 255, 255, .9);
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+
+@media (max-width: 480px) {
+  .premium-card {
+    border-radius: 24px;
+    padding: 36px 28px 32px;
+  }
+}
+
+.btn-primary-gradient {
+  background: linear-gradient(135deg, var(--amber) 0%, var(--amber-dark) 100%);
+  color: white;
+  border: none;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  letter-spacing: .02em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: transform var(--transition), box-shadow var(--transition);
+  box-shadow: var(--shadow-btn);
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 52px;
+  border-radius: var(--radius-lg);
+}
+
+.btn-primary-gradient::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, .15) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.btn-primary-gradient:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 36px -6px rgba(245, 158, 11, .55);
+}
+
+.btn-primary-gradient:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px -2px rgba(245, 158, 11, .35);
+}
+
+.btn-primary-gradient:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.form-input-standard {
+  width: 100%;
+  height: 52px;
+  border: 1.5px solid var(--slate-200);
+  border-radius: var(--radius-lg);
+  background: var(--slate-50);
+  font-family: 'DM Sans', sans-serif;
+  font-size: .9rem;
+  color: var(--slate-900);
+  outline: none;
+  transition: border-color var(--transition), background var(--transition), box-shadow var(--transition);
+  -webkit-appearance: none;
+}
+
+.form-input-standard::placeholder {
+  color: var(--slate-300);
+}
+
+.form-input-standard:focus {
+  border-color: var(--amber);
+  background: var(--white);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, .12);
+}
+
+.form-label-secondary {
+  font-family: 'Syne', sans-serif;
+  font-size: .7rem;
+  font-weight: 700;
+  color: var(--slate-500);
+  text-transform: uppercase;
+  letter-spacing: .13em;
+  cursor: default;
+}
+
+.alert-custom {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  font-size: .82rem;
+  font-weight: 600;
+}
+
+.alert-custom--error {
+  background: var(--red-soft);
+  color: var(--red);
+  border: 1px solid rgba(239, 68, 68, .15);
+}
+
+.alert-custom--success {
+  background: var(--green-soft);
+  color: var(--green);
+  border: 1px solid rgba(34, 197, 94, .15);
+}
+
+.custom-checkbox-styled {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--slate-300);
+  border-radius: 5px;
+  cursor: pointer;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: var(--slate-50);
+  flex-shrink: 0;
+  transition: border-color var(--transition), background var(--transition);
+  display: grid;
+  place-items: center;
+  position: relative;
+}
+
+.custom-checkbox-styled::after {
+  content: '';
+  width: 9px;
+  height: 6px;
+  border-left: 2px solid white;
+  border-bottom: 2px solid white;
+  transform: rotate(-45deg) scale(0);
+  transition: transform .18s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  top: -1px;
+}
+
+.custom-checkbox-styled:checked {
+  background: var(--amber);
+  border-color: var(--amber);
+}
+
+.custom-checkbox-styled:checked::after {
+  transform: rotate(-45deg) scale(1);
+}
+
+.custom-checkbox-styled:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+.spinner-standard {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid rgba(255, 255, 255, .3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  flex-shrink: 0;
+}
+
 .mat-mdc-form-field-appearance-outline .mat-mdc-text-field-wrapper {
   background-color: #f8fafc;
   border-radius: 14px !important;
@@ -45,20 +268,17 @@ body {
   transition: background-color 0.25s ease, box-shadow 0.25s ease;
 }
 
-/* Hover state */
 .mat-mdc-form-field-appearance-outline:hover .mat-mdc-text-field-wrapper {
   background-color: #f1f5f9;
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-/* Focus state — white bg, subtle primary ring */
 .mat-mdc-form-field-appearance-outline.mat-focused .mat-mdc-text-field-wrapper {
   background-color: #ffffff;
   box-shadow: 0 0 0 3px rgba(var(--mat-sys-primary-rgb, 59, 130, 246), 0.08),
     inset 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
-/* Outline borders — softer default color, rounded */
 .mat-mdc-form-field-appearance-outline .mdc-notched-outline__leading {
   border-color: #e2e8f0 !important;
   border-top-left-radius: 14px !important;
@@ -75,7 +295,6 @@ body {
   border-bottom-right-radius: 14px !important;
 }
 
-/* Focus outline — uses primary color */
 .mat-mdc-form-field-appearance-outline.mat-focused .mdc-notched-outline__leading,
 .mat-mdc-form-field-appearance-outline.mat-focused .mdc-notched-outline__notch,
 .mat-mdc-form-field-appearance-outline.mat-focused .mdc-notched-outline__trailing {
@@ -83,27 +302,23 @@ body {
   border-width: 2px !important;
 }
 
-/* Hover outline — slightly darker border */
 .mat-mdc-form-field-appearance-outline:hover .mdc-notched-outline__leading,
 .mat-mdc-form-field-appearance-outline:hover .mdc-notched-outline__notch,
 .mat-mdc-form-field-appearance-outline:hover .mdc-notched-outline__trailing {
   border-color: #cbd5e1 !important;
 }
 
-/* Label — better font weight & spacing */
 .mat-mdc-form-field .mat-mdc-floating-label {
   font-weight: 500 !important;
   letter-spacing: 0.01em;
   color: #64748b !important;
 }
 
-/* Focused label — primary accent color */
 .mat-mdc-form-field.mat-focused .mat-mdc-floating-label {
   color: var(--primary-color) !important;
   font-weight: 600 !important;
 }
 
-/* Input text — crisp typography */
 .mat-mdc-form-field .mat-mdc-input-element,
 .mat-mdc-form-field .mat-mdc-select-value-text {
   font-weight: 500;
@@ -111,13 +326,11 @@ body {
   font-size: 0.9375rem;
 }
 
-/* Placeholder — lighter & italic hint */
 .mat-mdc-form-field .mat-mdc-input-element::placeholder {
   color: #94a3b8;
   font-weight: 400;
 }
 
-/* Prefix icon colors */
 .mat-mdc-form-field .mat-mdc-form-field-icon-prefix mat-icon,
 .mat-mdc-form-field [matprefix] {
   color: #94a3b8 !important;
@@ -129,7 +342,6 @@ body {
   color: var(--primary-color) !important;
 }
 
-/* Suffix icon colors (datepicker toggle, etc.) */
 .mat-mdc-form-field .mat-mdc-form-field-icon-suffix mat-icon,
 .mat-mdc-form-field [matsuffix] mat-icon {
   color: #94a3b8 !important;
@@ -141,7 +353,6 @@ body {
   color: var(--primary-color) !important;
 }
 
-/* Error state — red tint */
 .mat-mdc-form-field-appearance-outline.mat-form-field-invalid .mat-mdc-text-field-wrapper {
   background-color: #fef2f2;
   box-shadow: inset 0 1px 3px rgba(239, 68, 68, 0.06);
@@ -153,13 +364,11 @@ body {
   border-color: #fca5a5 !important;
 }
 
-/* Subscript area (hint / error text) — tighter spacing */
 .mat-mdc-form-field .mat-mdc-form-field-subscript-wrapper {
   padding: 0 4px;
   margin-top: 2px;
 }
 
-/* Select dropdown panel — rounded and elevated */
 .mat-mdc-select-panel {
   border-radius: 14px !important;
   box-shadow: 0 10px 40px -8px rgba(0, 0, 0, 0.12),
@@ -168,7 +377,6 @@ body {
   padding: 6px !important;
 }
 
-/* Select options — rounded hover */
 .mat-mdc-option {
   border-radius: 10px !important;
   margin: 2px 0 !important;
@@ -187,7 +395,6 @@ body {
   font-weight: 600 !important;
 }
 
-/* Datepicker toggle — round button */
 .mat-datepicker-toggle .mat-mdc-icon-button {
   color: #94a3b8;
   transition: color 0.2s ease;
@@ -197,19 +404,14 @@ body {
   color: var(--primary-color);
 }
 
-/* Dialog form fields — slightly tighter on dialogs */
 .mat-mdc-dialog-container .mat-mdc-form-field {
   margin-bottom: 4px;
 }
 
-/* ===== Datepicker Overlay & Calendar Styling ===== */
-
-/* Ensure datepicker overlays render above dialog content */
 .cdk-overlay-container {
   z-index: 1050 !important;
 }
 
-/* Calendar panel — rounded, elevated, consistent with design */
 .mat-datepicker-content {
   border-radius: 20px !important;
   box-shadow: 0 20px 60px -10px rgba(0, 0, 0, 0.15),
@@ -218,19 +420,16 @@ body {
   overflow: hidden;
 }
 
-/* Calendar cells — clear borders and spacing */
 .mat-calendar-body-cell {
   border-radius: 12px !important;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-/* Hover state */
 .mat-calendar-body-cell:hover .mat-calendar-body-cell-content {
   background-color: #f8fafc !important;
   border-color: #e2e8f0 !important;
 }
 
-/* Selected date — primary accent */
 .mat-calendar-body-selected {
   background-color: var(--primary-color) !important;
   color: white !important;
@@ -238,13 +437,11 @@ body {
   box-shadow: 0 4px 12px rgba(246, 174, 64, 0.3);
 }
 
-/* Today indicator */
 .mat-calendar-body-today:not(.mat-calendar-body-selected) {
   border-color: var(--primary-color) !important;
   border-width: 2px;
 }
 
-/* Calendar navigation arrows */
 .mat-calendar-previous-button,
 .mat-calendar-next-button {
   color: #64748b !important;
@@ -256,13 +453,16 @@ body {
   color: var(--primary-color) !important;
 }
 
-/* Calendar header period label */
 .mat-calendar-period-button {
   font-weight: 700 !important;
   color: #1e293b !important;
 }
 
-/* ===== Reusable Form Section Title ===== */
+.form-input-standard.with-icon {
+  padding-left: 46px;
+  padding-right: 48px;
+}
+
 .form-section-title {
   font-size: 10px;
   font-weight: 900;

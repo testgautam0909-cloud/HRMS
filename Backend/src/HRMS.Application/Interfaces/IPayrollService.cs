@@ -14,4 +14,5 @@ public interface IPayrollService
     Task<PayrollResponseDto> OverridePayrollAsync(Guid payrollId, PayrollOverrideDto dto, string performedBy);
     Task<PayrollResponseDto> RelockPayrollAsync(Guid payrollId, string performedBy);
     Task<PayrollSummaryDto> GetPayrollSummaryAsync(int month, int year);
+    Task<IEnumerable<PayrollResponseDto>> GetEmployeePayrollHistoryAsync(Guid employeeId);
 }

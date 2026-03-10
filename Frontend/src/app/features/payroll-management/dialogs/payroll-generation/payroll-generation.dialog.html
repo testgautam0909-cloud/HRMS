@@ -1,0 +1,125 @@
+<div class="p-8 space-y-6 min-w-[520px] bg-white rounded-3xl overflow-hidden relative">
+
+    <!-- Header -->
+    <div class="flex items-center gap-4 mb-2">
+        <div class="w-12 h-12 rounded-2xl bg-primary-50 text-primary-600 flex items-center justify-center shrink-0">
+            <mat-icon class="style-24">auto_awesome</mat-icon>
+        </div>
+        <div>
+            <h2 class="text-2xl font-black text-slate-900 leading-tight">Generate Payroll</h2>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Monthly Compensation Run</p>
+        </div>
+        <button mat-icon-button (click)="onCancel()" class="!ml-auto text-slate-400 hover:text-slate-600">
+            <mat-icon>close</mat-icon>
+        </button>
+    </div>
+
+    <!-- Period Selection -->
+    <div>
+        <p class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-3 border-b border-slate-100 pb-2">1. Select Period</p>
+        <div class="grid grid-cols-2 gap-4">
+            <mat-form-field appearance="outline" class="!mb-0">
+                <mat-label>Month</mat-label>
+                <mat-select [(value)]="selectedMonth">
+                    <mat-option *ngFor="let m of months" [value]="m.value">{{ m.label }}</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="!mb-0">
+                <mat-label>Year</mat-label>
+                <mat-select [(value)]="selectedYear">
+                    <mat-option *ngFor="let y of years" [value]="y">{{ y }}</mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+    </div>
+
+    <!-- Scope Toggle -->
+    <div>
+        <p class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-3 border-b border-slate-100 pb-2">2. Select Scope</p>
+        <div class="flex items-center justify-between p-4 rounded-2xl border border-slate-100 bg-slate-50">
+            <div>
+                <p class="font-bold text-slate-800 text-sm">
+                    {{ specificMode() ? 'Specific Employees Only' : 'All Active Employees' }}
+                </p>
+                <p class="text-xs text-slate-500 mt-0.5">
+                    {{ specificMode() ? 'Search and pick individual employees below.' : 'Payroll will be calculated for every active employee.' }}
+                </p>
+            </div>
+            <mat-slide-toggle [checked]="specificMode()" (change)="toggleMode($event.checked)" color="primary">
+            </mat-slide-toggle>
+        </div>
+    </div>
+
+    <!-- Employee Search (only in specific mode) -->
+    <div *ngIf="specificMode()" class="animate-fade-in space-y-4">
+        <p class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-3 border-b border-slate-100 pb-2">3. Select Employees</p>
+
+        <!-- Search Input -->
+        <mat-form-field appearance="outline" class="w-full !mb-0">
+            <mat-label>Search by name or email...</mat-label>
+            <input matInput [formControl]="searchControl" [matAutocomplete]="auto" autocomplete="off">
+            <mat-icon matSuffix *ngIf="!isSearching()">person_search</mat-icon>
+            <mat-spinner *ngIf="isSearching()" matSuffix diameter="18" strokeWidth="2" class="mr-2"></mat-spinner>
+            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectEmployee($event.option.value)">
+                <mat-option *ngFor="let emp of searchResults()" [value]="emp">
+                    <div class="flex items-center gap-3 py-1">
+                        <div class="w-7 h-7 rounded-lg bg-primary-100 text-primary-700 text-xs font-black flex items-center justify-center shrink-0">
+                            {{ (emp.firstName || emp.name || '?').charAt(0) | uppercase }}
+                        </div>
+                        <div>
+                            <p class="font-bold text-slate-800 text-sm leading-tight">{{ emp.firstName }} {{ emp.lastName }}</p>
+                            <p class="text-[10px] text-slate-400 font-medium">{{ emp.email }}</p>
+                        </div>
+                    </div>
+                </mat-option>
+                <mat-option *ngIf="searchResults().length === 0 && searchControl.value && searchControl.value.length >= 2 && !isSearching()" disabled>
+                    <span class="text-slate-400 text-sm italic">No employees found.</span>
+                </mat-option>
+            </mat-autocomplete>
+        </mat-form-field>
+
+        <!-- Selected chips -->
+        <div *ngIf="selectedEmployees().length > 0" class="flex flex-wrap gap-2 p-3 bg-slate-50 rounded-xl border border-slate-100 min-h-[50px]">
+            <div *ngFor="let emp of selectedEmployees()" 
+                 class="flex items-center gap-2 bg-white border border-primary-100 text-primary-700 px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm">
+                <mat-icon class="style-14">person</mat-icon>
+                {{ emp.name }}
+                <button (click)="removeEmployee(emp.id)" class="text-primary-400 hover:text-red-500 transition-colors ml-1">
+                    <mat-icon class="style-14">close</mat-icon>
+                </button>
+            </div>
+        </div>
+
+        <div *ngIf="selectedEmployees().length === 0" class="text-center py-4 text-slate-400 text-sm font-medium italic">
+            Search for an employee above to add them to this payroll run.
+        </div>
+    </div>
+
+    <!-- Info box -->
+    <div class="bg-amber-50/50 border border-amber-100 p-4 rounded-2xl flex gap-3 items-start">
+        <mat-icon class="text-amber-500 mt-0.5">info_outline</mat-icon>
+        <p class="text-xs text-amber-800 font-bold leading-relaxed">
+            Employees who already have payroll generated for this period will be automatically <strong>skipped</strong> to prevent duplicate records.
+        </p>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center justify-end gap-3 pt-2 border-t border-slate-50">
+        <button mat-button (click)="onCancel()" class="!h-12 !px-6 !rounded-xl !font-black !text-slate-400">
+            Cancel
+        </button>
+        <button mat-flat-button color="primary" (click)="onGenerate()" 
+                [disabled]="isLoading() || !canGenerate"
+                class="!h-12 !px-8 !rounded-xl !font-black !shadow-lg !shadow-primary-600/20">
+            <span *ngIf="!isLoading()" class="flex items-center gap-2">
+                <mat-icon>play_circle_filled</mat-icon>
+                {{ specificMode() ? ('Run for ' + selectedEmployees().length + ' Employee' + (selectedEmployees().length !== 1 ? 's' : '')) : 'Run for All Employees' }}
+            </span>
+            <span *ngIf="isLoading()" class="flex items-center gap-3">
+                <div class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                Processing...
+            </span>
+        </button>
+    </div>
+</div>

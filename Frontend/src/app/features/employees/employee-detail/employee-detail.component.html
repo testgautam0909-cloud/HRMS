@@ -132,10 +132,114 @@
                             </div>
                         </mat-tab>
 
-                        <mat-tab label="Documents & Payroll">
-                            <div class="p-8">
-                                <app-empty-state icon="folder_open" title="Documents Repository"
-                                    description="Employee documents, contracts, and payslips are centralized here. Currently no files available."></app-empty-state>
+                        <mat-tab label="Salary & Payroll">
+                            <div class="p-8 space-y-8">
+                                <!-- Active Salary Structure -->
+                                <section *ngIf="activeSalary(); else noSalary">
+                                    <div class="flex items-center justify-between mb-6">
+                                        <h4 class="text-xs font-black text-primary-600 uppercase tracking-[0.2em]">Active Salary Structure</h4>
+                                        <div class="flex gap-2">
+                                            <button mat-stroked-button color="primary" class="!rounded-xl !font-bold" (click)="openIncrementDialog()">
+                                                <mat-icon class="mr-2">trending_up</mat-icon> Request Increment
+                                            </button>
+                                            <button mat-flat-button color="primary" class="!rounded-xl !font-black shadow-lg shadow-primary-600/20" (click)="openSalaryDialog()">
+                                                <mat-icon class="mr-2">edit</mat-icon> Update Structure
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                        <div class="p-6 rounded-2xl bg-slate-50 border border-slate-100">
+                                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Monthly CTC</p>
+                                            <h3 class="text-2xl font-black text-slate-900">{{ activeSalary()?.ctc | currency }}</h3>
+                                            <p class="text-[10px] font-bold text-primary-600 mt-1">Effective: {{ activeSalary()?.effectiveDate | date:'mediumDate' }}</p>
+                                        </div>
+                                        <div class="p-6 rounded-2xl bg-slate-50 border border-slate-100">
+                                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Net Payable</p>
+                                            <h3 class="text-2xl font-black text-slate-900 text-green-600">{{ activeSalary()?.netSalary | currency }}</h3>
+                                            <p class="text-[10px] font-bold text-slate-400 mt-1">After {{ activeSalary()?.totalDeductions | currency }} deductions</p>
+                                        </div>
+                                        <div class="p-6 rounded-2xl bg-slate-50 border border-slate-100">
+                                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Basic Salary</p>
+                                            <h3 class="text-2xl font-black text-slate-900">{{ activeSalary()?.basicSalary | currency }}</h3>
+                                            <p class="text-[10px] font-bold text-slate-400 mt-1">{{ (activeSalary()?.basicSalary! / activeSalary()?.grossSalary!) * 100 | number:'1.0-0' }}% of Gross</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div>
+                                            <h5 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Earnings Breakdown</h5>
+                                            <div class="space-y-3">
+                                                <div class="flex justify-between text-sm">
+                                                    <span class="text-slate-500 font-medium">Basic Salary</span>
+                                                    <span class="font-bold text-slate-900">{{ activeSalary()?.basicSalary | currency }}</span>
+                                                </div>
+                                                <div class="flex justify-between text-sm">
+                                                    <span class="text-slate-500 font-medium">HRA</span>
+                                                    <span class="font-bold text-slate-900">{{ activeSalary()?.houseRentAllowance | currency }}</span>
+                                                </div>
+                                                <div class="flex justify-between text-sm">
+                                                    <span class="text-slate-500 font-medium">Transport Allowance</span>
+                                                    <span class="font-bold text-slate-900">{{ activeSalary()?.transportAllowance | currency }}</span>
+                                                </div>
+                                                <div class="flex justify-between text-sm border-t border-dashed pt-3">
+                                                    <span class="text-slate-900 font-bold uppercase tracking-tighter">Gross Salary</span>
+                                                    <span class="font-black text-slate-900">{{ activeSalary()?.grossSalary | currency }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h5 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Deductions Breakdown</h5>
+                                            <div class="space-y-3">
+                                                <div class="flex justify-between text-sm">
+                                                    <span class="text-slate-500 font-medium">Provident Fund</span>
+                                                    <span class="font-bold text-red-500">-{{ activeSalary()?.providentFund | currency }}</span>
+                                                </div>
+                                                <div class="flex justify-between text-sm">
+                                                    <span class="text-slate-500 font-medium">Income Tax (TDS)</span>
+                                                    <span class="font-bold text-red-500">-{{ activeSalary()?.incomeTax | currency }}</span>
+                                                </div>
+                                                <div class="flex justify-between text-sm border-t border-dashed pt-3">
+                                                    <span class="text-slate-900 font-bold uppercase tracking-tighter text-red-600">Total Deductions</span>
+                                                    <span class="font-black text-red-600">{{ activeSalary()?.totalDeductions | currency }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <ng-template #noSalary>
+                                    <app-empty-state icon="payments" title="No Active Salary"
+                                        description="This employee doesn't have an active salary structure defined yet.">
+                                        <button mat-flat-button color="primary" class="mt-4 !rounded-xl" (click)="openSalaryDialog()">Set Salary Structure</button>
+                                    </app-empty-state>
+                                </ng-template>
+
+                                <!-- Increment History -->
+                                <mat-divider></mat-divider>
+                                <section>
+                                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Increment History</h4>
+                                    <div *ngIf="increments().length; else noIncrements" class="space-y-4">
+                                        <div *ngFor="let inc of increments()" class="flex items-center justify-between p-4 rounded-2xl border border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                            <div class="flex items-center gap-4">
+                                                <div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center">
+                                                    <mat-icon>trending_up</mat-icon>
+                                                </div>
+                                                <div>
+                                                    <p class="font-bold text-slate-900">{{ inc.incrementPercentage }}% Increase</p>
+                                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{{ inc.requestDate | date }}</p>
+                                                </div>
+                                            </div>
+                                            <div class="text-right">
+                                                <p class="font-black text-slate-900">{{ inc.newCTC | currency }}</p>
+                                                <app-status-chip [label]="inc.status" [type]="inc.status === 'Approved' ? 'success' : (inc.status === 'Pending' ? 'warning' : 'error')"></app-status-chip>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <ng-template #noIncrements>
+                                        <p class="text-xs text-slate-400 font-medium italic">No increments recorded yet.</p>
+                                    </ng-template>
+                                </section>
                             </div>
                         </mat-tab>
                     </mat-tab-group>

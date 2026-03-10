@@ -7,8 +7,13 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
   template: `
     <div class="page-header mb-8 pt-3">
-      <h1 class="mat-headline-4 text-slate-900 font-bold mb-1">{{ title }}</h1>
-      <p class="mat-body-2 text-slate-500 font-medium" *ngIf="subtitle">{{ subtitle }}</p>
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h1 class="mat-headline-4 text-slate-900 font-bold mb-1">{{ title }}</h1>
+          <p class="mat-body-2 text-slate-500 font-medium" *ngIf="subtitle">{{ subtitle }}</p>
+        </div>
+        <ng-content></ng-content>
+      </div>
     </div>
   `,
   styles: [`

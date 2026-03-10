@@ -51,12 +51,12 @@
             <div class="relative z-10 flex flex-col justify-center h-full gap-3">
                 <button mat-flat-button color="primary" class="!rounded-xl !py-7 shadow-lg shadow-primary-500/20"
                     (click)="openAssignDialog()">
-                    <mat-icon class="mr-1">person_add</mat-icon> Assign Duty
+                    <mat-icon class="mr-1">person_add</mat-icon> Assign Employee
                 </button>
                 <button mat-stroked-button
                     class="!rounded-xl !py-7 !border-white/20 text-white hover:bg-white/5 transition-all"
                     (click)="openShiftDialog()">
-                    <mat-icon class="mr-1">add</mat-icon> Create Pattern
+                    <mat-icon class="mr-1">add</mat-icon> Create Shift
                 </button>
             </div>
             <div class="absolute -right-4 -top-4 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -248,7 +248,7 @@
                                     </button>
                                     <button mat-menu-item class="text-red-600" (click)="deleteShift(shift.id)">
                                         <mat-icon class="text-red-600">delete_outline</mat-icon> <span
-                                            class="text-red-600">Delete Pattern</span>
+                                            class="text-red-600">Delete Shift</span>
                                     </button>
                                 </mat-menu>
                             </td>

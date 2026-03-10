@@ -31,6 +31,7 @@ export class SidebarComponent {
     { label: 'Attendance', path: '/attendance', icon: 'event_available', tooltip: 'Punch in/out & History' },
     { label: 'Leave', path: '/leave', icon: 'event_note', tooltip: 'Request time off' },
     { label: 'Payroll', path: '/payroll', icon: 'payments', tooltip: 'Salary & Slips' },
+    { label: 'Payroll Management', path: '/payroll-management', icon: 'manage_accounts', roles: ['Admin', 'HR'], tooltip: 'Manage Payroll' },
     { label: 'My Shift', path: '/shift', icon: 'schedule', tooltip: 'Your Work Roster' },
     { label: 'Shift Master', path: '/shift-management', icon: 'settings_applications', roles: ['Admin', 'HR'], tooltip: 'Manage Company Shifts' },
     { label: 'Chat', path: '/chat', icon: 'forum', tooltip: 'Internal Communication' },

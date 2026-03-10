@@ -65,6 +65,14 @@ export class LoginComponent {
     this.hidePassword.update(v => !v);
   }
 
+  get email() {
+    return this.loginForm.get('email')!;
+  }
+
+  get password() {
+    return this.loginForm.get('password')!;
+  }
+
   onSubmit() {
     if (this.loginForm.invalid) return;
 

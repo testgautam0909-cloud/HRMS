@@ -1,0 +1,65 @@
+<div class="p-6">
+    <button mat-icon-button (click)="onCancel()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 z-10">
+        <mat-icon>close</mat-icon>
+    </button>
+
+    <div class="mb-6">
+        <div class="w-10 h-10 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center mb-3">
+            <mat-icon>trending_up</mat-icon>
+        </div>
+        <h2 class="text-xl font-black text-slate-900">Request Increment</h2>
+        <p class="text-sm text-slate-500 mt-1">Submit a salary increment request.</p>
+    </div>
+
+    <!-- Preview -->
+    <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 mb-6">
+        <div class="flex items-center gap-4">
+            <div class="flex-1">
+                <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Current CTC</p>
+                <p class="text-lg font-bold text-slate-700">{{ currentCTC | currency }}</p>
+            </div>
+            <mat-icon class="text-slate-300">arrow_forward</mat-icon>
+            <div class="flex-1 text-right">
+                <p class="text-[10px] font-black text-primary-600 uppercase mb-1">Proposed CTC</p>
+                <p class="text-2xl font-black text-slate-900">{{ newCTC | currency }}</p>
+                <p *ngIf="incrementAmount > 0" class="text-[10px] font-bold text-green-600 mt-1">
+                    +{{ incrementAmount | currency }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+        <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Increment Percentage (%)</mat-label>
+            <input matInput type="number" formControlName="incrementPercentage" step="0.5" min="0.1" max="100">
+            <mat-icon matSuffix class="text-slate-400 mr-2">percent</mat-icon>
+            <mat-error *ngIf="form.get('incrementPercentage')?.hasError('required')">Required</mat-error>
+            <mat-error *ngIf="form.get('incrementPercentage')?.hasError('min')">Must be > 0</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Request Date</mat-label>
+            <input matInput [matDatepicker]="picker" formControlName="requestDate">
+            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Justification</mat-label>
+            <textarea matInput formControlName="justification" rows="4"
+                placeholder="Provide detailed reasons for this increment request..."></textarea>
+            <mat-hint>Required (min 10 characters)</mat-hint>
+            <mat-error *ngIf="form.get('justification')?.hasError('required')">Required</mat-error>
+            <mat-error *ngIf="form.get('justification')?.hasError('minlength')">Min 10 characters</mat-error>
+        </mat-form-field>
+
+        <div class="pt-4 flex justify-end gap-3 border-t border-slate-100">
+            <button type="button" mat-stroked-button (click)="onCancel()" [disabled]="isLoading()" class="!rounded-xl !px-6">Cancel</button>
+            <button type="submit" mat-flat-button color="primary" [disabled]="form.invalid || isLoading()" class="!rounded-xl !px-8 font-black">
+                <span *ngIf="!isLoading()">Submit Request</span>
+                <div *ngIf="isLoading()" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            </button>
+        </div>
+    </form>
+</div>

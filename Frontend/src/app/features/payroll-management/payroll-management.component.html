@@ -1,0 +1,196 @@
+<div class="space-y-8 animate-fade-in pb-12 p-6">
+    <app-page-header title="Payroll Control Center"
+        subtitle="Manage end-to-end payroll operations, approvals, and distributions.">
+        <button mat-flat-button color="primary" (click)="openGenerateDialog()"
+            class="!h-12 !px-8 !rounded-xl !font-black !shadow-lg !shadow-primary-600/20">
+            <mat-icon class="mr-2">play_circle_filled</mat-icon>
+            Generate Payroll Run
+        </button>
+    </app-page-header>
+
+    <!-- Filters -->
+    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-4 flex-wrap">
+        <mat-form-field appearance="outline" class="w-44 !mb-0 text-sm">
+            <mat-label>Month</mat-label>
+            <mat-select [formControl]="selectedMonth">
+                <mat-option *ngFor="let m of months" [value]="m.value">{{ m.label }}</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="w-44 !mb-0 text-sm">
+            <mat-label>Year</mat-label>
+            <mat-select [formControl]="selectedYear">
+                <mat-option *ngFor="let y of years" [value]="y">{{ y }}</mat-option>
+            </mat-select>
+        </mat-form-field>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <mat-card class="!bg-primary-600 text-white p-6 rounded-3xl shadow-xl shadow-primary-600/20 relative overflow-hidden border-0">
+            <p class="text-[10px] font-black text-primary-200 uppercase tracking-widest mb-1">Total Net Salary</p>
+            <h3 class="text-3xl font-black mb-1">{{ (summary()?.totalNetSalary || 0) | currency }}</h3>
+            <p class="text-xs font-bold text-primary-100">{{ summary()?.totalEmployees || 0 }} Employees</p>
+            <mat-icon class="absolute -right-4 -bottom-4 text-white opacity-10" style="font-size:96px">account_balance</mat-icon>
+        </mat-card>
+
+        <mat-card class="p-6 rounded-3xl shadow-sm border border-slate-100 bg-white">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Gross</p>
+            <h3 class="text-2xl font-black text-slate-900 mb-1">{{ (summary()?.totalGrossSalary || 0) | currency }}</h3>
+            <div class="w-full bg-slate-100 rounded-full h-1.5 mt-2">
+                <div class="bg-primary-500 h-1.5 rounded-full transition-all" [style.width.%]="completionPercent()"></div>
+            </div>
+            <p class="text-[10px] font-bold text-slate-400 mt-2 text-right">{{ completionPercent() }}% Paid</p>
+        </mat-card>
+
+        <mat-card class="p-6 rounded-3xl shadow-sm border border-slate-100 bg-white flex flex-col justify-center">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Payment Status</p>
+            <div class="space-y-2 mt-2">
+                <div class="flex justify-between text-xs">
+                    <span class="text-green-600 font-bold">Paid</span>
+                    <span class="font-black text-green-700">{{ summary()?.totalPaid || 0 }}</span>
+                </div>
+                <div class="flex justify-between text-xs">
+                    <span class="text-orange-500 font-medium">Pending</span>
+                    <span class="font-bold text-orange-600">{{ summary()?.totalPending || 0 }}</span>
+                </div>
+            </div>
+        </mat-card>
+
+        <mat-card class="p-6 rounded-3xl shadow-sm border-0 bg-orange-50 cursor-pointer hover:bg-orange-100 transition-colors"
+            (click)="showIncrements.set(!showIncrements())">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-[10px] font-black text-orange-600 uppercase tracking-widest mb-1">Pending Increments</p>
+                    <h3 class="text-3xl font-black text-orange-700">{{ pendingIncrements().length }}</h3>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-white text-orange-500 flex items-center justify-center shadow-sm">
+                    <mat-icon>{{ showIncrements() ? 'expand_less' : 'expand_more' }}</mat-icon>
+                </div>
+            </div>
+            <p class="text-[10px] font-bold text-orange-500 mt-1 uppercase">Requires Approval</p>
+        </mat-card>
+    </div>
+
+    <!-- Increment Requests -->
+    <div *ngIf="showIncrements() && pendingIncrements().length > 0"
+        class="bg-white rounded-3xl shadow-sm border border-slate-100 p-6">
+        <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest mb-4 flex items-center gap-2">
+            <mat-icon class="text-orange-500" style="font-size:20px">hourglass_top</mat-icon> Active Increment Requests
+        </h3>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div *ngFor="let req of pendingIncrements()"
+                class="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 font-black shadow-sm text-sm">
+                        {{ req.employeeName?.charAt(0) || '?' }}
+                    </div>
+                    <div>
+                        <p class="font-bold text-slate-900 leading-tight">{{ req.employeeName }}</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase">{{ req.requestDate | date }}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm font-black text-green-600">{{ req.incrementPercentage }}%
+                        <span class="text-xs font-medium text-slate-400 ml-1">→ {{ req.newCTC | currency }}</span>
+                    </p>
+                    <button class="text-primary-600 hover:text-primary-700 text-xs font-bold uppercase hover:underline"
+                        (click)="openIncrementApproval(req)">Review</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payroll Records Table -->
+    <mat-card class="rounded-3xl border border-slate-100 shadow-sm overflow-hidden bg-white">
+        <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
+            <h3 class="text-lg font-black text-slate-800">Payroll Records</h3>
+            <mat-form-field appearance="outline" class="w-48 !mb-0 !mt-0 text-sm hidden sm:block">
+                <mat-label>Status Filter</mat-label>
+                <mat-select [formControl]="statusFilter">
+                    <mat-option value="">All</mat-option>
+                    <mat-option value="Generated">Generated</mat-option>
+                    <mat-option value="Paid">Paid</mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+
+        <div class="overflow-x-auto relative min-h-[300px]">
+            <div *ngIf="isLoading()" class="absolute inset-0 bg-white/60 backdrop-blur-[2px] z-20 flex items-center justify-center">
+                <div class="w-10 h-10 border-4 border-primary-100 border-t-primary-600 rounded-full animate-spin"></div>
+            </div>
+
+            <table class="w-full text-left" *ngIf="payrolls().length > 0; else emptyState">
+                <thead>
+                    <tr class="bg-white border-b border-slate-100">
+                        <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Employee</th>
+                        <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Gross</th>
+                        <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Deductions</th>
+                        <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Net Salary</th>
+                        <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                        <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-50">
+                    <tr *ngFor="let record of payrolls()" class="hover:bg-slate-50/30 transition-colors">
+                        <td class="px-6 py-4">
+                            <p class="font-bold text-slate-900">{{ record.employeeName }}</p>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase">{{ getMonthName(record.month) }} {{ record.year }}</p>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-sm font-bold text-slate-600">{{ record.grossSalary | currency }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-sm font-bold text-red-500">-{{ record.totalDeductions | currency }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-base font-black text-slate-900">{{ record.netSalary | currency }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <app-status-chip [label]="record.status" [type]="getStatusType(record.status)"></app-status-chip>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <button mat-icon-button [matMenuTriggerFor]="menu" class="text-slate-400 hover:text-primary-600">
+                                <mat-icon>more_vert</mat-icon>
+                            </button>
+                            <mat-menu #menu="matMenu" xPosition="before">
+                                <button mat-menu-item (click)="openMarkPaidDialog(record)" *ngIf="record.status !== 'Paid'">
+                                    <mat-icon class="text-green-500">check_circle</mat-icon>
+                                    <span>Mark as Paid</span>
+                                </button>
+                                <button mat-menu-item (click)="openOverrideDialog(record)" *ngIf="record.status !== 'Paid'">
+                                    <mat-icon class="text-blue-500">edit_note</mat-icon>
+                                    <span>Override (Bonus/Penalty)</span>
+                                </button>
+                                <button mat-menu-item (click)="openRelockDialog(record)" *ngIf="record.status === 'Paid'">
+                                    <mat-icon class="text-red-500">lock_open</mat-icon>
+                                    <span>Relock Record</span>
+                                </button>
+                                <mat-divider></mat-divider>
+                                <button mat-menu-item (click)="openSlipUploadDialog(record)">
+                                    <mat-icon class="text-slate-400">cloud_upload</mat-icon>
+                                    <span>Generate & Upload Slip</span>
+                                </button>
+                                <button mat-menu-item (click)="downloadSlip(record.id)">
+                                    <mat-icon class="text-primary-500">download</mat-icon>
+                                    <span>Download Salary Slip</span>
+                                </button>
+                            </mat-menu>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <ng-template #emptyState>
+                <div class="py-12">
+                    <app-empty-state *ngIf="!isLoading()" icon="receipt_long" title="No Records Found"
+                        description="Try adjusting your filters or generating a new payroll run for this period.">
+                    </app-empty-state>
+                </div>
+            </ng-template>
+        </div>
+
+        <mat-paginator [length]="totalRecords()" [pageSize]="pageSize()" [pageSizeOptions]="[10, 25, 50]"
+            (page)="onPageChange($event)" class="border-t border-slate-50">
+        </mat-paginator>
+    </mat-card>
+</div>
